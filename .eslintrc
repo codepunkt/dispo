@@ -1,0 +1,12 @@
+{
+  "parser": "babel-eslint",
+  "extends": "standard",
+  "env": {
+    "mocha": true,
+    "node": true
+  },
+  "plugins": [
+    "babel",
+    "import"
+  ]
+}

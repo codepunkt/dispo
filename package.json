@@ -1,0 +1,80 @@
+{
+  "name": "dispo",
+  "version": "1.0.0",
+  "description": "TODO",
+  "main": "dist/index.js",
+  "author": "Christoph Werner <christoph@codepunkt.de>",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "chalk": "^1.1.3",
+    "commander": "^2.9.0",
+    "dateformat": "^1.0.12",
+    "express": "^4.14.0",
+    "fs-extra": "^0.30.0",
+    "kue": "^0.11.1",
+    "later": "^1.2.0",
+    "lodash": "^4.16.1",
+    "pretty-ms": "^2.1.0",
+    "winston": "^2.2.0",
+    "zmq": "^2.15.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-eslint": "^6.1.2",
+    "babel-plugin-transform-async-to-generator": "^6.8.0",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-es2015": "^6.14.0",
+    "coveralls": "^2.11.14",
+    "eslint": "^3.5.0",
+    "eslint-config-standard": "^6.0.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-import": "^1.15.0",
+    "eslint-plugin-promise": "^2.0.1",
+    "eslint-plugin-standard": "^2.0.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.0.2",
+    "pre-commit": "^1.1.3"
+  },
+  "bin": {
+    "dispo": "dist/bin/dispo.js"
+  },
+  "scripts": {
+    "addCompile": "git add dist/",
+    "coverage": "istanbul cover _mocha -- --compilers js:babel-register",
+    "compile": "rm -rf dist/ && babel -d dist/ src/",
+    "lint": "eslint {src,test}/**",
+    "prepublish": "npm run compile",
+    "test": "npm run lint && mocha --compilers js:babel-register"
+  },
+  "pre-commit": {
+    "run": "test, compile, addCompile",
+    "silent": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gonsfx/dispo"
+  },
+  "bugs": "https://github.com/gonsfx/dispo/issues",
+  "keywords": [
+    "kue",
+    "Kue",
+    "KUE",
+    "schedule",
+    "Schedule",
+    "SCHEDULE",
+    "scheduler",
+    "Scheduler",
+    "SCHEDULER",
+    "job",
+    "Job",
+    "JOB",
+    "cron",
+    "Cron",
+    "CRON",
+    "cronjob",
+    "Cronjob",
+    "CRONJOB",
+    "ZeroMQ"
+  ]
+}

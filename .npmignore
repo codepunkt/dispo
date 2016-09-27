@@ -1,0 +1,6 @@
+coverage
+src
+test
+.codeclimate.yml
+.coveralls.yml
+.travis.yml
