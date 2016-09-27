@@ -1,6 +1,6 @@
 {
   "name": "dispo",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "TODO",
   "main": "dist/index.js",
   "author": "Christoph Werner <christoph@codepunkt.de>",
