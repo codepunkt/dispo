@@ -2,8 +2,8 @@ import kue from 'kue'
 import zmq from 'zmq'
 import later from 'later'
 import assert from 'assert'
-import { omit } from 'lodash'
 import { promisify } from 'bluebird'
+import { assign, omit } from 'lodash'
 import Logger from './logger'
 
 /**
@@ -35,7 +35,7 @@ export const getJob = promisify(kue.Job.get)
  */
 export default class Dispo {
   constructor (config = {}) {
-    this.config = Object.assign({}, defaultConfig, config)
+    this.config = assign({}, defaultConfig, config)
   }
 
   /**
@@ -46,7 +46,7 @@ export default class Dispo {
     this._logger.init()
 
     this._initSocket()
-    this._initQueue()
+    this._initQueue(this.config.options.queue)
 
     for (let job of this.config.jobs) {
       await this.defineJob(job)
@@ -82,8 +82,8 @@ export default class Dispo {
    * This is mostly done to set up queue level logging and to be able to automatically
    * queue the next runs of cronjobs after their previous runs have completed.
    */
-  _initQueue () {
-    this._queue = kue.createQueue()
+  _initQueue (options = {}) {
+    this._queue = kue.createQueue(options)
     this._queue.watchStuckJobs(5e3)
 
     this._queue.on('job start', async (id) => await this._logger.logStart(id))

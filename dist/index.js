@@ -5,6 +5,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getJob = undefined;
 
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -16,10 +20,6 @@ var _getIterator3 = _interopRequireDefault(_getIterator2);
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-var _assign = require('babel-runtime/core-js/object/assign');
-
-var _assign2 = _interopRequireDefault(_assign);
 
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
@@ -45,9 +45,9 @@ var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _lodash = require('lodash');
-
 var _bluebird = require('bluebird');
+
+var _lodash = require('lodash');
 
 var _logger = require('./logger');
 
@@ -88,7 +88,7 @@ var Dispo = function () {
     var config = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
     (0, _classCallCheck3.default)(this, Dispo);
 
-    this.config = (0, _assign2.default)({}, defaultConfig, config);
+    this.config = (0, _lodash.assign)({}, defaultConfig, config);
   }
 
   /**
@@ -110,7 +110,7 @@ var Dispo = function () {
                 this._logger.init();
 
                 this._initSocket();
-                this._initQueue();
+                this._initQueue(this.config.options.queue);
 
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
@@ -251,7 +251,9 @@ var Dispo = function () {
     value: function _initQueue() {
       var _this = this;
 
-      this._queue = _kue2.default.createQueue();
+      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+      this._queue = _kue2.default.createQueue(options);
       this._queue.watchStuckJobs(5e3);
 
       this._queue.on('job start', function () {
@@ -274,7 +276,7 @@ var Dispo = function () {
           }, _callee3, _this);
         }));
 
-        return function (_x3) {
+        return function (_x4) {
           return _ref4.apply(this, arguments);
         };
       }());
@@ -298,7 +300,7 @@ var Dispo = function () {
           }, _callee4, _this);
         }));
 
-        return function (_x4, _x5) {
+        return function (_x5, _x6) {
           return _ref5.apply(this, arguments);
         };
       }());
@@ -322,7 +324,7 @@ var Dispo = function () {
           }, _callee5, _this);
         }));
 
-        return function (_x6, _x7) {
+        return function (_x7, _x8) {
           return _ref6.apply(this, arguments);
         };
       }());
@@ -359,7 +361,7 @@ var Dispo = function () {
           }, _callee6, _this);
         }));
 
-        return function (_x8) {
+        return function (_x9) {
           return _ref7.apply(this, arguments);
         };
       }());
@@ -413,7 +415,7 @@ var Dispo = function () {
           }, _callee7, _this2);
         }));
 
-        return function (_x10) {
+        return function (_x11) {
           return _ref8.apply(this, arguments);
         };
       }());
@@ -461,7 +463,7 @@ var Dispo = function () {
         }, _callee8, this);
       }));
 
-      function _isCronScheduled(_x11) {
+      function _isCronScheduled(_x12) {
         return _ref9.apply(this, arguments);
       }
 
@@ -524,7 +526,7 @@ var Dispo = function () {
         }, _callee9, this);
       }));
 
-      function _queueJob(_x12, _x13) {
+      function _queueJob(_x13, _x14) {
         return _ref10.apply(this, arguments);
       }
 
