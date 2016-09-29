@@ -88,7 +88,7 @@ var Dispo = function () {
     var config = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
     (0, _classCallCheck3.default)(this, Dispo);
 
-    this.config = (0, _lodash.assign)({}, defaultConfig, config);
+    this.config = (0, _lodash.merge)({}, defaultConfig, config);
   }
 
   /**

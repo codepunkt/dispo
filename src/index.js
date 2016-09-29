@@ -3,7 +3,7 @@ import zmq from 'zmq'
 import later from 'later'
 import assert from 'assert'
 import { promisify } from 'bluebird'
-import { assign, omit } from 'lodash'
+import { merge, omit } from 'lodash'
 import Logger from './logger'
 
 /**
@@ -35,7 +35,7 @@ export const getJob = promisify(kue.Job.get)
  */
 export default class Dispo {
   constructor (config = {}) {
-    this.config = assign({}, defaultConfig, config)
+    this.config = merge({}, defaultConfig, config)
   }
 
   /**
