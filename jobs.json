@@ -1,6 +1,0 @@
-{
-	"jobs": {
-		"random": { "file": "dist/jobs/random.js", "cron": "*/1 * * * *", "attempts": 3 },
-		"randomSingle": { "file": "dist/jobs/random.js", "attempts": 2 }
-	}
-}

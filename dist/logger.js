@@ -44,13 +44,13 @@ var _prettyMs = require('pretty-ms');
 
 var _prettyMs2 = _interopRequireDefault(_prettyMs);
 
-var _lodash = require('lodash');
-
 var _dateformat = require('dateformat');
 
 var _dateformat2 = _interopRequireDefault(_dateformat);
 
-var _fsExtra = require('fs-extra');
+var _lodash = require('lodash');
+
+var _fs = require('fs');
 
 var _ = require('.');
 
@@ -129,7 +129,10 @@ var Logger = function () {
   (0, _createClass3.default)(Logger, [{
     key: 'init',
     value: function init() {
-      (0, _fsExtra.ensureDirSync)(_path2.default.resolve(this.config.path));
+      var logpath = _path2.default.resolve(this.config.path);
+      if (!(0, _fs.existsSync)(logpath)) {
+        (0, _fs.mkdirSync)(logpath);
+      }
       this.winston = new _winston6.default.Logger(this.config.winstonConfig);
     }
   }, {

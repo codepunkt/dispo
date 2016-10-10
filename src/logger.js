@@ -2,9 +2,9 @@ import path from 'path'
 import chalk from 'chalk'
 import winston from 'winston'
 import prettyMs from 'pretty-ms'
-import { isEmpty, isObject } from 'lodash'
 import formatDate from 'dateformat'
-import { ensureDirSync } from 'fs-extra'
+import { isEmpty, isObject } from 'lodash'
+import { existsSync, mkdirSync } from 'fs'
 import { getJob } from '.'
 
 /**
@@ -75,7 +75,10 @@ export default class Logger {
   }
 
   init () {
-    ensureDirSync(path.resolve(this.config.path))
+    const logpath = path.resolve(this.config.path)
+    if (!existsSync(logpath)) {
+      mkdirSync(logpath)
+    }
     this.winston = new winston.Logger(this.config.winstonConfig)
   }
 
