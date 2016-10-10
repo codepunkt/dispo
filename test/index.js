@@ -9,6 +9,7 @@ chai.use(sinonChai)
 
 describe('getAbsolutePath', () => {
   const existingPath = 'src/bin/dispo.js'
+
   it('throws when file doesnt exist', () => {
     expect(() => getAbsolutePath(existingPath)).to.not.throw
     expect(() => getAbsolutePath('nonexisting.json')).to.throw
@@ -25,15 +26,15 @@ describe('getAbsolutePath', () => {
     expect(resolve).to.have.been.calledOnce
     expect(resolve).to.have.been.calledWith(existingPath)
     expect(accessSync).to.have.been.calledOnce
-    expect(accessSync).to.have.been.calledWith(resolve(existingPath), fs.constants.R_OK)
+    expect(accessSync).to.have.been.calledWith(resolve(existingPath), fs.R_OK)
     accessSync.restore()
     resolve.restore()
   })
 
   it('pass 2nd parameter to fs.accessSync', () => {
     const accessSync = spy(fs, 'accessSync')
-    getAbsolutePath(existingPath, fs.constants.W_OK)
-    expect(accessSync).to.have.been.calledWith(resolve(existingPath), fs.constants.W_OK)
+    getAbsolutePath(existingPath, fs.W_OK)
+    expect(accessSync).to.have.been.calledWith(resolve(existingPath), fs.W_OK)
     accessSync.restore()
   })
 })
