@@ -12,11 +12,11 @@ const checkFile = (path, mode = fs.constants.R_OK) => {
 
 program
   .version(version)
-  .option('-C, --config <config>', 'config file path')
+  .option('-C, --config <config>', 'config file path, default: `jobs.json`')
   .option('-B, --basedir <basedir>', 'directory used as a base for relative config and job paths')
   .parse(process.argv)
 
-program.config = program.config || 'dispo.json'
+program.config = program.config || 'jobs.json'
 program.basedir = program.basedir || process.cwd()
 
 if (program.basedir.slice(-1) !== '/') {
