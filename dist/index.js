@@ -33,10 +33,6 @@ var _kue = require('kue');
 
 var _kue2 = _interopRequireDefault(_kue);
 
-var _zmq = require('zmq');
-
-var _zmq2 = _interopRequireDefault(_zmq);
-
 var _later = require('later');
 
 var _later2 = _interopRequireDefault(_later);
@@ -44,6 +40,10 @@ var _later2 = _interopRequireDefault(_later);
 var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
+
+var _zmqPrebuilt = require('zmq-prebuilt');
+
+var _zmqPrebuilt2 = _interopRequireDefault(_zmqPrebuilt);
 
 var _bluebird = require('bluebird');
 
@@ -381,7 +381,7 @@ var Dispo = function () {
 
       var port = arguments.length <= 0 || arguments[0] === undefined ? this.config.options.port : arguments[0];
 
-      var responder = _zmq2.default.socket('rep');
+      var responder = _zmqPrebuilt2.default.socket('rep');
 
       responder.on('message', function () {
         var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(message) {

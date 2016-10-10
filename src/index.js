@@ -1,7 +1,7 @@
 import kue from 'kue'
-import zmq from 'zmq'
 import later from 'later'
 import assert from 'assert'
+import zmq from 'zmq-prebuilt'
 import { promisify } from 'bluebird'
 import { merge, omit } from 'lodash'
 import Logger from './logger'
