@@ -207,24 +207,11 @@ var Logger = function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                if (!(0, _lodash.isObject)(job)) {
-                  _context2.next = 4;
-                  break;
-                }
-
-                _context2.t0 = job;
-                _context2.next = 7;
-                break;
-
-              case 4:
-                _context2.next = 6;
+                _context2.next = 2;
                 return (0, _.getJob)(job);
 
-              case 6:
-                _context2.t0 = _context2.sent;
-
-              case 7:
-                _ref4 = _context2.t0;
+              case 2:
+                _ref4 = _context2.sent;
                 _attempts = _ref4._attempts;
                 data = _ref4.data;
                 duration = _ref4.duration;
@@ -233,7 +220,7 @@ var Logger = function () {
 
                 this.winston.info(message, (0, _assign2.default)({ id: id, duration: duration, tries: _attempts }, data));
 
-              case 14:
+              case 9:
               case 'end':
                 return _context2.stop();
             }

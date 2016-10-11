@@ -47,7 +47,7 @@
     "compile": "rm -rf dist/ && babel -d dist/ src/",
     "lint": "eslint {src,test}/**",
     "prepublish": "npm run compile",
-    "test": "npm run lint && mocha --compilers js:babel-register",
+    "test": "NODE_ENV=test npm run lint && NODE_ENV=test mocha --compilers js:babel-register",
     "prestart": "npm run compile",
     "start": "node dist/bin/dispo.js --basedir example"
   },

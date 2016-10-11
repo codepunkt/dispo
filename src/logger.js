@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import winston from 'winston'
 import prettyMs from 'pretty-ms'
 import formatDate from 'dateformat'
-import { isEmpty, isObject } from 'lodash'
+import { isEmpty } from 'lodash'
 import { existsSync, mkdirSync } from 'fs'
 import { getJob } from '.'
 
@@ -93,7 +93,7 @@ export default class Logger {
   }
 
   async logComplete (job) {
-    const { _attempts, data, duration, id } = isObject(job) ? job : await getJob(job)
+    const { _attempts, data, duration, id } = await getJob(job)
     const message = `Finished ${data.name} after ${prettyMs(Number(duration))}`
     this.winston.info(message, Object.assign({ id, duration, tries: _attempts }, data))
   }
