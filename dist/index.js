@@ -200,31 +200,29 @@ var Dispo = function () {
         var cron = _ref3.cron;
         var fn = _ref3.fn;
         var name = _ref3.name;
-        var defaultOptions, options;
+        var options;
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 (0, _assert2.default)(name, 'Job must have a name');
 
-                defaultOptions = { attempts: 3 };
-                options = (0, _assign2.default)(defaultOptions, { attempts: attempts });
-
+                options = { attempts: attempts };
 
                 this._queue.process(name, function (job, done) {
                   return fn(job).then(done, done);
                 });
 
                 if (!cron) {
-                  _context2.next = 8;
+                  _context2.next = 7;
                   break;
                 }
 
                 options.cron = cron;
-                _context2.next = 8;
+                _context2.next = 7;
                 return this._queueJob(name, options);
 
-              case 8:
+              case 7:
               case 'end':
                 return _context2.stop();
             }

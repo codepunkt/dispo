@@ -65,9 +65,7 @@ export default class Dispo {
   async defineJob ({ attempts, cron, fn, name }) {
     assert(name, 'Job must have a name')
 
-    const defaultOptions = { attempts: 3 }
-    const options = Object.assign(defaultOptions, { attempts })
-
+    const options = { attempts }
     this._queue.process(name, (job, done) => fn(job).then(done, done))
 
     if (cron) {
