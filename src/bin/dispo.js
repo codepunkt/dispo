@@ -3,7 +3,7 @@ import { resolve } from 'path'
 import program from 'commander'
 import Scheduler from '..'
 import { version } from '../../package.json'
-import { getAbsolutePath } from '../util'
+import { getAbsolutePath, parseJobs } from '../util'
 
 program
   .version(version)
@@ -16,19 +16,7 @@ program.basedir = program.basedir || process.cwd()
 
 try {
   const config = require(getAbsolutePath(resolve(program.basedir, program.config)))
-  const jobs = []
-
-  for (let name of Object.keys(config.jobs)) {
-    const { file, cron, attempts } = config.jobs[name]
-    const exports = require(getAbsolutePath(resolve(program.basedir, file)))
-    jobs.push(Object.assign({ attempts }, cron ? { cron } : {}, {
-      fn: exports.default || exports,
-      name
-    }))
-  }
-
-  config.jobs = jobs
-
+  config.jobs = parseJobs(config.jobs, program.basedir)
   const scheduler = new Scheduler(config)
   scheduler.init()
 } catch (e) {
