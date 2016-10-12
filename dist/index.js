@@ -88,7 +88,7 @@ var getJob = exports.getJob = (0, _bluebird.promisify)(_kue2.default.Job.get);
 
 var Dispo = function () {
   function Dispo() {
-    var config = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     (0, _classCallCheck3.default)(this, Dispo);
 
     this.config = (0, _lodash.merge)({}, defaultConfig, config);
@@ -252,7 +252,7 @@ var Dispo = function () {
     value: function _initQueue() {
       var _this = this;
 
-      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       this._queue = _kue2.default.createQueue(options);
       this._queue.watchStuckJobs(5e3);
@@ -403,7 +403,7 @@ var Dispo = function () {
     value: function _initSocket() {
       var _this2 = this;
 
-      var port = arguments.length <= 0 || arguments[0] === undefined ? this.config.options.port : arguments[0];
+      var port = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.options.port;
 
       var responder = _zmqPrebuilt2.default.socket('rep');
 

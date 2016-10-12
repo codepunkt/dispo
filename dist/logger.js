@@ -109,8 +109,8 @@ var runsIn = function runsIn(createdAt, delay) {
  * @return {String} Formatted date
  */
 var dateTime = function dateTime() {
-  var date = arguments.length <= 0 || arguments[0] === undefined ? Date.now() : arguments[0];
-  var format = arguments.length <= 1 || arguments[1] === undefined ? 'HH:MM:ss' : arguments[1];
+  var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Date.now();
+  var format = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'HH:MM:ss';
 
   return (0, _dateformat2.default)(date, format);
 };
