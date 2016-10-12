@@ -1,6 +1,6 @@
 # Dispo
 
-[![npm version](https://badge.fury.io/js/dispo.svg)](https://badge.fury.io/js/dispo) [![Build Status](https://travis-ci.org/gonsfx/dispo.svg?branch=master)](https://travis-ci.org/gonsfx/dispo) [![Coverage Status](https://coveralls.io/repos/github/gonsfx/dispo/badge.svg?branch=master)](https://coveralls.io/github/gonsfx/dispo?branch=master) [![Dependency Status](https://david-dm.org/gonsfx/dispo.svg)](https://david-dm.org/gonsfx/dispo) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+[![npm version](https://badge.fury.io/js/dispo.svg)](https://badge.fury.io/js/dispo) [![Build Status](https://travis-ci.org/gonsfx/dispo.svg?branch=master)](https://travis-ci.org/gonsfx/dispo) [![Coverage Status](https://coveralls.io/repos/github/gonsfx/dispo/badge.svg?branch=master)](https://coveralls.io/github/gonsfx/dispo?branch=master) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 Dispo is a job and cronjob scheduler for Node.
 
