@@ -53,13 +53,14 @@ var _logger = require('./logger');
 
 var _logger2 = _interopRequireDefault(_logger);
 
+var _util = require('./util');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var NODE_ENV = process.env.NODE_ENV;
 
 /**
  * Default scheduler config
- * @type {Object}
  */
 
 var defaultConfig = {
@@ -78,6 +79,7 @@ var getJobsByType = (0, _bluebird.promisify)(_kue2.default.Job.rangeByType);
 
 /**
  * Promisified version of `kue.Job.get`
+ *
  * @type {Function}
  */
 var getJob = exports.getJob = (0, _bluebird.promisify)(_kue2.default.Job.get);
@@ -87,6 +89,12 @@ var getJob = exports.getJob = (0, _bluebird.promisify)(_kue2.default.Job.get);
  */
 
 var Dispo = function () {
+  /**
+   * Creates an instance of Dispo.
+   *
+   * @memberOf Dispo
+   * @param {Object} [config={}]
+   */
   function Dispo() {
     var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     (0, _classCallCheck3.default)(this, Dispo);
@@ -96,6 +104,8 @@ var Dispo = function () {
 
   /**
    * Initializes logging, socket bindings and the queue mechanism
+   *
+   * @return {Promise<void>}
    */
 
 
@@ -186,13 +196,18 @@ var Dispo = function () {
     }()
 
     /**
+     * @typedef {Object} DefineJobOptions
+     * @property {String} name - Job name
+     * @property {Function} fn - Job method that is executed when the job is run
+     * @property {Number} attempts - Number of attempts a job is retried until marked as failure
+     * @property {String} cron - Interval-based scheduling written in cron syntax, ignored when delay is given
+     */
+    /**
      * Defines a job
      *
-     * @param  {Object} options - Job options
-     * @param  {String} options.name - Job name
-     * @param  {String} options.fn - Job method that is executed when the job is run
-     * @param  {Number} options.attempts - Number of attempts a job is retried until marked as failure
-     * @param  {String} options.cron - Interval-based scheduling written in cron syntax, ignored when delay is given
+     * @memberOf Dispo
+     * @param {DefineJobOptions} options - Job options
+     * @return {Promise<void>}
      */
 
   }, {
@@ -203,6 +218,7 @@ var Dispo = function () {
         var cron = _ref3.cron;
         var fn = _ref3.fn;
         var name = _ref3.name;
+        var backoff = _ref3.backoff;
         var options;
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -210,7 +226,7 @@ var Dispo = function () {
               case 0:
                 (0, _assert2.default)(name, 'Job must have a name');
 
-                options = { attempts: attempts };
+                options = { attempts: attempts, backoff: backoff };
 
                 this._queue.process(name, function (job, done) {
                   return fn(job).then(done, done);
@@ -245,6 +261,9 @@ var Dispo = function () {
      *
      * This is mostly done to set up queue level logging and to be able to automatically
      * queue the next runs of cronjobs after their previous runs have completed.
+     *
+     * @memberOf Dispo
+     * @param {Object} [options={}]
      */
 
   }, {
@@ -396,6 +415,9 @@ var Dispo = function () {
      *
      * Received messages add new jobs to the queue when the given job is defined in
      * the job configuration
+     *
+     * @memberOf Dispo
+     * @param {Number|String} [port=this.config.options.port]
      */
 
   }, {
@@ -456,8 +478,9 @@ var Dispo = function () {
     /**
      * Checks if a cronjob of the given `name` is already scheduled.
      *
-     * @param  {String} name - The jobs name
-     * @return {Boolean}
+     * @memberOf Dispo
+     * @param {String} name - The jobs name
+     * @return {Promise<Boolean>}
      */
 
   }, {
@@ -495,13 +518,19 @@ var Dispo = function () {
     }()
 
     /**
+     * @typedef {Object} QueueJobOptions
+     * @property {Number} attempts - Number of attempts a job is retried until marked as failure
+     * @property {Number} delay - Delay job run by the given amount of miliseconds
+     * @property {String} cron - Interval-based scheduling written in cron syntax, ignored when delay is given
+     * @property {Boolean|{type:String,delay:Number}} backoff - Interval-based scheduling written in cron syntax, ignored when delay is given
+     */
+    /**
      * Queues a job.
      *
-     * @param  {String} name - Job name
-     * @param  {Object} options - Job options
-     * @param  {Number} options.attempts - Number of attempts a job is retried until marked as failure
-     * @param  {Number} options.delay - Delay job run by the given amount of miliseconds
-     * @param  {String} options.cron - Interval-based scheduling written in cron syntax, ignored when delay is given
+     * @memberOf Dispo
+     * @param {String} name - Job name
+     * @param {QueueJobOptions} options - Job options
+     * @return {Promise<void>}
      */
 
   }, {
@@ -510,7 +539,7 @@ var Dispo = function () {
       var _ref11 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee10(name, options) {
         var _this3 = this;
 
-        var attempts, cron, delay, isScheduled;
+        var attempts, cron, delay, backoff, isScheduled;
         return _regenerator2.default.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -518,19 +547,24 @@ var Dispo = function () {
                 attempts = options.attempts;
                 cron = options.cron;
                 delay = options.delay;
+                backoff = options.backoff;
 
                 (0, _assert2.default)(!!cron || !!delay, 'To queue a job, either `cron` or `delay` needs to be defined');
 
-                _context10.next = 6;
+                _context10.next = 7;
                 return this._isCronScheduled(name);
 
-              case 6:
+              case 7:
                 isScheduled = _context10.sent;
 
 
                 if (!cron || !isScheduled) {
                   (function () {
                     var job = _this3._queue.create(name, (0, _assign2.default)(options, { name: name })).delay(delay || _this3._calculateDelay(cron)).attempts(attempts);
+
+                    if (backoff) {
+                      job.backoff((0, _util.parseBackoff)(backoff));
+                    }
 
                     job.save(function (err) {
                       if (err) {
@@ -542,7 +576,7 @@ var Dispo = function () {
                   })();
                 }
 
-              case 8:
+              case 9:
               case 'end':
                 return _context10.stop();
             }
@@ -560,7 +594,8 @@ var Dispo = function () {
     /**
      * Calculates the delay until a cronjobs next run is due
      *
-     * @param  {String} cron - Interval-based scheduling written in cron syntax
+     * @memberOf Dispo
+     * @param {String} cron - Interval-based scheduling written in cron syntax
      * @return {Number} Number of miliseconds until next cron run
      */
 
