@@ -5,6 +5,7 @@ import chai, { expect } from 'chai'
 import path, { resolve } from 'path'
 import Scheduler from '../src'
 import Logger from '../src/logger'
+import Mailer from '../src/mailer'
 
 import {
   getAbsolutePath,
@@ -78,6 +79,18 @@ describe('Scheduler', () => {
       const scheduler = new Scheduler()
       scheduler.init()
       expect(scheduler._logger).to.be.instanceof(Logger)
+    })
+
+    it('initializes a mailer when switch is on', () => {
+      const scheduler = new Scheduler({options: {mailer: {enabled: true}}})
+      scheduler.init()
+      expect(scheduler._mailer).to.be.instanceof(Mailer)
+    })
+
+    it('doesn\'t initializes a mailer by default', () => {
+      const scheduler = new Scheduler()
+      scheduler.init()
+      expect(scheduler._mailer).to.be.undefined
     })
   })
 })

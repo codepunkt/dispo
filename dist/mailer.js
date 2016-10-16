@@ -40,8 +40,8 @@ var defaults = {
   nodemailerConfig: {
     transportOptions: null,
     mailOptions: {
-      from: '"Dispo Administrator" <admin@dispo>',
-      to: 'admin@dispo', // list of receivers, override this through the jobs config file
+      from: '',
+      to: '', // list of receivers, override this through the jobs config file
       subject: 'Dispo - job and cronjob scheduler for Node',
       text: ''
     }
