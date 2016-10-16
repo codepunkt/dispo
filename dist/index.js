@@ -53,6 +53,10 @@ var _logger = require('./logger');
 
 var _logger2 = _interopRequireDefault(_logger);
 
+var _mailer = require('./mailer');
+
+var _mailer2 = _interopRequireDefault(_mailer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var NODE_ENV = process.env.NODE_ENV;
@@ -66,7 +70,8 @@ var defaultConfig = {
   jobs: [],
   options: {
     port: 5555,
-    logging: { path: 'log' }
+    logging: { path: 'log' },
+    mailer: { enabled: false }
   }
 };
 
@@ -112,70 +117,75 @@ var Dispo = function () {
                 this._logger = new _logger2.default(this.config.options.logging);
                 this._logger.init();
 
+                if (this.config.options.mailer.enabled) {
+                  this._mailer = new _mailer2.default(this.config.options.mailer);
+                  this._mailer.init();
+                }
+
                 this._initSocket();
                 this._initQueue(this.config.options.queue);
 
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context.prev = 7;
+                _context.prev = 8;
                 _iterator = (0, _getIterator3.default)(this.config.jobs);
 
-              case 9:
+              case 10:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context.next = 16;
+                  _context.next = 17;
                   break;
                 }
 
                 job = _step.value;
-                _context.next = 13;
+                _context.next = 14;
                 return this.defineJob(job);
 
-              case 13:
+              case 14:
                 _iteratorNormalCompletion = true;
-                _context.next = 9;
+                _context.next = 10;
                 break;
 
-              case 16:
-                _context.next = 22;
+              case 17:
+                _context.next = 23;
                 break;
 
-              case 18:
-                _context.prev = 18;
-                _context.t0 = _context['catch'](7);
+              case 19:
+                _context.prev = 19;
+                _context.t0 = _context['catch'](8);
                 _didIteratorError = true;
                 _iteratorError = _context.t0;
 
-              case 22:
-                _context.prev = 22;
+              case 23:
                 _context.prev = 23;
+                _context.prev = 24;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
-              case 25:
-                _context.prev = 25;
+              case 26:
+                _context.prev = 26;
 
                 if (!_didIteratorError) {
-                  _context.next = 28;
+                  _context.next = 29;
                   break;
                 }
 
                 throw _iteratorError;
 
-              case 28:
-                return _context.finish(25);
-
               case 29:
-                return _context.finish(22);
+                return _context.finish(26);
 
               case 30:
+                return _context.finish(23);
+
+              case 31:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, this, [[7, 18, 22, 30], [23,, 25, 29]]);
+        }, _callee, this, [[8, 19, 23, 31], [24,, 26, 30]]);
       }));
 
       function init() {
@@ -265,7 +275,7 @@ var Dispo = function () {
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     _context3.next = 2;
-                    return _this._logger.logStart(id);
+                    return _this._handleStart(id);
 
                   case 2:
                     return _context3.abrupt('return', _context3.sent);
@@ -289,7 +299,7 @@ var Dispo = function () {
                 switch (_context4.prev = _context4.next) {
                   case 0:
                     _context4.next = 2;
-                    return _this._logger.logFailedAttempt(id, msg);
+                    return _this._handleFailedAttempt(id, msg);
 
                   case 2:
                     return _context4.abrupt('return', _context4.sent);
@@ -313,7 +323,7 @@ var Dispo = function () {
                 switch (_context5.prev = _context5.next) {
                   case 0:
                     _context5.next = 2;
-                    return _this._logger.logFailure(id, msg);
+                    return _this._handleFailed(id, msg);
 
                   case 2:
                     return _context5.abrupt('return', _context5.sent);
@@ -337,7 +347,7 @@ var Dispo = function () {
                 switch (_context6.prev = _context6.next) {
                   case 0:
                     _context6.next = 2;
-                    return _this._logger.logComplete(id);
+                    return _this._handleComplete(id);
 
                   case 2:
                     return _context6.abrupt('return', _context6.sent);
@@ -358,26 +368,17 @@ var Dispo = function () {
 
       this._queue.on('job complete', function () {
         var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(id) {
-          var job;
           return _regenerator2.default.wrap(function _callee7$(_context7) {
             while (1) {
               switch (_context7.prev = _context7.next) {
                 case 0:
                   _context7.next = 2;
-                  return getJob(id);
+                  return _this.__handleCompleteAlways(id);
 
                 case 2:
-                  job = _context7.sent;
+                  return _context7.abrupt('return', _context7.sent);
 
-                  if (!job.data.cron) {
-                    _context7.next = 6;
-                    break;
-                  }
-
-                  _context7.next = 6;
-                  return _this._queueJob(job.data.name, job.data);
-
-                case 6:
+                case 3:
                 case 'end':
                   return _context7.stop();
               }
@@ -390,6 +391,147 @@ var Dispo = function () {
         };
       }());
     }
+  }, {
+    key: '_handleStart',
+    value: function () {
+      var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(id) {
+        return _regenerator2.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return this._logger.logStart(id);
+
+              case 2:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function _handleStart(_x11) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return _handleStart;
+    }()
+  }, {
+    key: '_handleFailedAttempt',
+    value: function () {
+      var _ref10 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(id, msg) {
+        return _regenerator2.default.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.next = 2;
+                return this._logger.logFailedAttempt(id, msg);
+
+              case 2:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function _handleFailedAttempt(_x12, _x13) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return _handleFailedAttempt;
+    }()
+  }, {
+    key: '_handleFailed',
+    value: function () {
+      var _ref11 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee10(id, msg) {
+        return _regenerator2.default.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this._mailer.sendMail(id);
+
+              case 2:
+                _context10.next = 4;
+                return this._logger.logFailure(id, msg);
+
+              case 4:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function _handleFailed(_x14, _x15) {
+        return _ref11.apply(this, arguments);
+      }
+
+      return _handleFailed;
+    }()
+  }, {
+    key: '_handleComplete',
+    value: function () {
+      var _ref12 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee11(id) {
+        return _regenerator2.default.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return this._logger.logComplete(id);
+
+              case 2:
+              case 'end':
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this);
+      }));
+
+      function _handleComplete(_x16) {
+        return _ref12.apply(this, arguments);
+      }
+
+      return _handleComplete;
+    }()
+  }, {
+    key: '_handleCompleteAlways',
+    value: function () {
+      var _ref13 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee12(id) {
+        var job;
+        return _regenerator2.default.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return getJob(id);
+
+              case 2:
+                job = _context12.sent;
+
+                if (!job.data.cron) {
+                  _context12.next = 6;
+                  break;
+                }
+
+                _context12.next = 6;
+                return this._queueJob(job.data.name, job.data);
+
+              case 6:
+              case 'end':
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function _handleCompleteAlways(_x17) {
+        return _ref13.apply(this, arguments);
+      }
+
+      return _handleCompleteAlways;
+    }()
 
     /**
      * Initialize ØMQ reply socket
@@ -408,11 +550,11 @@ var Dispo = function () {
       var responder = _zmqPrebuilt2.default.socket('rep');
 
       responder.on('message', function () {
-        var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(message) {
+        var _ref14 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee13(message) {
           var payload, job, data;
-          return _regenerator2.default.wrap(function _callee8$(_context8) {
+          return _regenerator2.default.wrap(function _callee13$(_context13) {
             while (1) {
-              switch (_context8.prev = _context8.next) {
+              switch (_context13.prev = _context13.next) {
                 case 0:
                   payload = JSON.parse(message.toString());
                   job = _this2.config.jobs.filter(function (job) {
@@ -420,12 +562,12 @@ var Dispo = function () {
                   }).shift();
 
                   if (!job) {
-                    _context8.next = 7;
+                    _context13.next = 7;
                     break;
                   }
 
                   data = (0, _lodash.omit)((0, _assign2.default)(payload, job), 'fn', 'name');
-                  _context8.next = 6;
+                  _context13.next = 6;
                   return _this2._queueJob(job.name, data);
 
                 case 6:
@@ -433,14 +575,14 @@ var Dispo = function () {
 
                 case 7:
                 case 'end':
-                  return _context8.stop();
+                  return _context13.stop();
               }
             }
-          }, _callee8, _this2);
+          }, _callee13, _this2);
         }));
 
-        return function (_x12) {
-          return _ref9.apply(this, arguments);
+        return function (_x19) {
+          return _ref14.apply(this, arguments);
         };
       }());
 
@@ -463,32 +605,32 @@ var Dispo = function () {
   }, {
     key: '_isCronScheduled',
     value: function () {
-      var _ref10 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(name) {
+      var _ref15 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee14(name) {
         var jobsByType, cronjobsByType;
-        return _regenerator2.default.wrap(function _callee9$(_context9) {
+        return _regenerator2.default.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
-                _context9.next = 2;
+                _context14.next = 2;
                 return getJobsByType(name, 'delayed', 0, 10000, 'desc');
 
               case 2:
-                jobsByType = _context9.sent;
+                jobsByType = _context14.sent;
                 cronjobsByType = jobsByType.filter(function (job) {
                   return !!job.data.cron;
                 });
-                return _context9.abrupt('return', cronjobsByType.length > 0);
+                return _context14.abrupt('return', cronjobsByType.length > 0);
 
               case 5:
               case 'end':
-                return _context9.stop();
+                return _context14.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee14, this);
       }));
 
-      function _isCronScheduled(_x13) {
-        return _ref10.apply(this, arguments);
+      function _isCronScheduled(_x20) {
+        return _ref15.apply(this, arguments);
       }
 
       return _isCronScheduled;
@@ -507,13 +649,13 @@ var Dispo = function () {
   }, {
     key: '_queueJob',
     value: function () {
-      var _ref11 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee10(name, options) {
+      var _ref16 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee15(name, options) {
         var _this3 = this;
 
         var attempts, cron, delay, isScheduled;
-        return _regenerator2.default.wrap(function _callee10$(_context10) {
+        return _regenerator2.default.wrap(function _callee15$(_context15) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context15.prev = _context15.next) {
               case 0:
                 attempts = options.attempts;
                 cron = options.cron;
@@ -521,11 +663,11 @@ var Dispo = function () {
 
                 (0, _assert2.default)(!!cron || !!delay, 'To queue a job, either `cron` or `delay` needs to be defined');
 
-                _context10.next = 6;
+                _context15.next = 6;
                 return this._isCronScheduled(name);
 
               case 6:
-                isScheduled = _context10.sent;
+                isScheduled = _context15.sent;
 
 
                 if (!cron || !isScheduled) {
@@ -544,14 +686,14 @@ var Dispo = function () {
 
               case 8:
               case 'end':
-                return _context10.stop();
+                return _context15.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee15, this);
       }));
 
-      function _queueJob(_x14, _x15) {
-        return _ref11.apply(this, arguments);
+      function _queueJob(_x21, _x22) {
+        return _ref16.apply(this, arguments);
       }
 
       return _queueJob;
