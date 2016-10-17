@@ -49,7 +49,8 @@ export default class Dispo {
     this._logger = new Logger(this.config.options.logging)
     this._logger.init()
 
-    if (this.config.options.mailer.enabled) {
+    if ('enabled' in this.config.options.mailer &&
+      this.config.options.mailer.enabled === true) {
       this._mailer = new Mailer(this.config.options.mailer)
       this._mailer.init()
     }
@@ -69,13 +70,18 @@ export default class Dispo {
    * @param  {String} options.name - Job name
    * @param  {String} options.fn - Job method that is executed when the job is run
    * @param  {Number} options.attempts - Number of attempts a job is retried until marked as failure
+   * @param  {Number} options.recipients - List of emails (separated by comma) to send email to on failure
    * @param  {String} options.cron - Interval-based scheduling written in cron syntax, ignored when delay is given
    */
-  async defineJob ({ attempts, cron, fn, name }) {
+  async defineJob ({ attempts, cron, recipients, fn, name }) {
     assert(name, 'Job must have a name')
 
     const options = { attempts }
     this._queue.process(name, (job, done) => fn(job).then(done, done))
+
+    if (recipients) {
+      options.recipients = recipients
+    }
 
     if (cron) {
       options.cron = cron
@@ -112,8 +118,10 @@ export default class Dispo {
   }
 
   async _handleFailed (id, msg) {
-    await this._mailer.sendMail(id)
     await this._logger.logFailure(id, msg)
+    if (this._mailer) {
+      await this._mailer.sendMail(id)
+    }
   }
 
   async _handleComplete (id) {

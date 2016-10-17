@@ -10,14 +10,14 @@ export const parseJobs = (jobs, basedir) => {
   const res = []
 
   for (let name of Object.keys(jobs)) {
-    const { file, cron, attempts } = jobs[name]
+    const { file, cron, attempts, recipients } = jobs[name]
 
     if (!file) {
       throw new Error(`no file defined for job "${name}"`)
     }
 
     const job = require(getAbsolutePath(resolve(basedir, file)))
-    res.push(Object.assign(cron ? { cron } : {}, {
+    res.push(Object.assign(cron ? { cron } : {}, recipients ? { recipients } : {}, {
       attempts: attempts || 3,
       fn: job.default || job,
       name

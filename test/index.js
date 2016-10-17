@@ -61,12 +61,12 @@ describe('Utility methods', () => {
       const fn = require(`../${file}`)
 
       const result = parseJobs({
-        random: { file, attempts: 2 },
+        random: { file, attempts: 2, recipients: 'example@email.com' },
         alsoRandom: { file, cron: '*/2 * * * *' }
       }, base)
 
       expect(result).to.deep.equal([
-        { name: 'random', attempts: 2, fn },
+        { name: 'random', attempts: 2, recipients: 'example@email.com', fn },
         { name: 'alsoRandom', attempts: 3, fn, cron: '*/2 * * * *' }
       ])
     })

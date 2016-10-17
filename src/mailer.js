@@ -39,11 +39,17 @@ export default class Mailer {
       mailOptions.to = data.recipients
     }
 
-    if (!this.config.enabled || mailOptions.to === '') {
+    if (!('enabled' in this.config)) {
+      return
+    }
+    if (this.config.enabled === false) {
+      return
+    }
+    if (mailOptions.to === '') {
       return
     }
 
-    mailOptions.text = `Job ${id}: Failed on all ${data.attempts} attempts.`
+    mailOptions.text = `Job ${id} - ${data.name}: Failed on all ${data.attempts} attempts.`
 
     return this._mailer.sendMail(mailOptions)
   }
