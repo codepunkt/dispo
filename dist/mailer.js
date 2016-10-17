@@ -28,6 +28,10 @@ var _nodemailer = require('nodemailer');
 
 var _nodemailer2 = _interopRequireDefault(_nodemailer);
 
+var _nodemailerSendmailTransport = require('nodemailer-sendmail-transport');
+
+var _nodemailerSendmailTransport2 = _interopRequireDefault(_nodemailerSendmailTransport);
+
 var _ = require('.');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -40,7 +44,7 @@ var defaults = {
   nodemailerConfig: {
     transportOptions: null,
     mailOptions: {
-      from: '',
+      from: 'info@dispo-cheduler.com',
       to: '', // list of receivers, override this through the jobs config file
       subject: 'Dispo - job and cronjob scheduler for Node',
       text: ''
@@ -62,7 +66,7 @@ var Mailer = function () {
   (0, _createClass3.default)(Mailer, [{
     key: 'init',
     value: function init() {
-      this._mailer = _nodemailer2.default.createTransport(this.config.nodemailerConfig.transportOptions);
+      this._mailer = _nodemailer2.default.createTransport(this.config.nodemailerConfig.transportOptions || (0, _nodemailerSendmailTransport2.default)());
     }
   }, {
     key: 'sendMail',
@@ -89,7 +93,7 @@ var Mailer = function () {
                   mailOptions.to = data.recipients;
                 }
 
-                if (!(!this.config.enabled || mailOptions.to === '')) {
+                if ('enabled' in this.config) {
                   _context.next = 9;
                   break;
                 }
@@ -97,12 +101,28 @@ var Mailer = function () {
                 return _context.abrupt('return');
 
               case 9:
+                if (!(this.config.enabled === false)) {
+                  _context.next = 11;
+                  break;
+                }
 
-                mailOptions.text = 'Job ' + id + ': Failed on all ' + data.attempts + ' attempts.';
+                return _context.abrupt('return');
+
+              case 11:
+                if (!(mailOptions.to === '')) {
+                  _context.next = 13;
+                  break;
+                }
+
+                return _context.abrupt('return');
+
+              case 13:
+
+                mailOptions.text = 'Job ' + id + ' - ' + data.name + ': Failed on all ' + data.attempts + ' attempts.';
 
                 return _context.abrupt('return', this._mailer.sendMail(mailOptions));
 
-              case 11:
+              case 15:
               case 'end':
                 return _context.stop();
             }

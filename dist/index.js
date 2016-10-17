@@ -117,7 +117,7 @@ var Dispo = function () {
                 this._logger = new _logger2.default(this.config.options.logging);
                 this._logger.init();
 
-                if (this.config.options.mailer.enabled) {
+                if ('enabled' in this.config.options.mailer && this.config.options.mailer.enabled === true) {
                   this._mailer = new _mailer2.default(this.config.options.mailer);
                   this._mailer.init();
                 }
@@ -202,6 +202,7 @@ var Dispo = function () {
      * @param  {String} options.name - Job name
      * @param  {String} options.fn - Job method that is executed when the job is run
      * @param  {Number} options.attempts - Number of attempts a job is retried until marked as failure
+     * @param  {Number} options.recipients - List of emails (separated by comma) to send email to on failure
      * @param  {String} options.cron - Interval-based scheduling written in cron syntax, ignored when delay is given
      */
 
@@ -211,6 +212,7 @@ var Dispo = function () {
       var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(_ref3) {
         var attempts = _ref3.attempts;
         var cron = _ref3.cron;
+        var recipients = _ref3.recipients;
         var fn = _ref3.fn;
         var name = _ref3.name;
         var options;
@@ -226,16 +228,20 @@ var Dispo = function () {
                   return fn(job).then(done, done);
                 });
 
+                if (recipients) {
+                  options.recipients = recipients;
+                }
+
                 if (!cron) {
-                  _context2.next = 7;
+                  _context2.next = 8;
                   break;
                 }
 
                 options.cron = cron;
-                _context2.next = 7;
+                _context2.next = 8;
                 return this._queueJob(name, options);
 
-              case 7:
+              case 8:
               case 'end':
                 return _context2.stop();
             }
@@ -450,13 +456,18 @@ var Dispo = function () {
             switch (_context10.prev = _context10.next) {
               case 0:
                 _context10.next = 2;
-                return this._mailer.sendMail(id);
-
-              case 2:
-                _context10.next = 4;
                 return this._logger.logFailure(id, msg);
 
-              case 4:
+              case 2:
+                if (!this._mailer) {
+                  _context10.next = 5;
+                  break;
+                }
+
+                _context10.next = 5;
+                return this._mailer.sendMail(id);
+
+              case 5:
               case 'end':
                 return _context10.stop();
             }

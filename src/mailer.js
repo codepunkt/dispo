@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import sendmailTransport from 'nodemailer-sendmail-transport'
 import { getJob } from '.'
 
 /**
@@ -9,7 +10,7 @@ const defaults = {
   nodemailerConfig: {
     transportOptions: null,
     mailOptions: {
-      from: '',
+      from: 'info@dispo-cheduler.com',
       to: '', // list of receivers, override this through the jobs config file
       subject: 'Dispo - job and cronjob scheduler for Node',
       text: ''
@@ -26,7 +27,7 @@ export default class Mailer {
   }
 
   init () {
-    this._mailer = nodemailer.createTransport(this.config.nodemailerConfig.transportOptions)
+    this._mailer = nodemailer.createTransport(this.config.nodemailerConfig.transportOptions || sendmailTransport())
   }
 
   async sendMail (job) {

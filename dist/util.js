@@ -46,6 +46,7 @@ var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
       var file = _jobs$name.file;
       var cron = _jobs$name.cron;
       var attempts = _jobs$name.attempts;
+      var recipients = _jobs$name.recipients;
 
 
       if (!file) {
@@ -53,7 +54,7 @@ var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
       }
 
       var job = require(getAbsolutePath((0, _path.resolve)(basedir, file)));
-      res.push((0, _assign2.default)(cron ? { cron: cron } : {}, {
+      res.push((0, _assign2.default)(cron ? { cron: cron } : {}, recipients ? { recipients: recipients } : {}, {
         attempts: attempts || 3,
         fn: job.default || job,
         name: name
