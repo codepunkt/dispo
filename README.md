@@ -60,3 +60,71 @@ The `attempts` property on the database cleanup job defines that the job is only
   }
 }
 ```
+
+#### Attempts with delay and backoff for failing jobs
+
+Jobs that sometimes fail to execute correctly (or any job in general to be precise) can be configured to restart with a delay after they fail. You can use this feature via the `backoff` property.
+Provide `backoff.type = 'fixed'` and the `backoff.delay = <Number>` in milliseconds to set a fixed delay in milliseconds that will be waited after a failed attempt to execute the job.
+Provide `backoff.type = 'exponential'` and the `backoff.delay = <Number>` in milliseconds to set a exponential growing delay in milliseconds that will be waited after a failed attempt to execute the job. The base of the expenential growth will be your given delay.
+
+The following configuration example defines a job called `flakyService` that is defined to run every minute on every day.
+`flakyService` will be executed a second, third and fourth time when it fails (`attempts: 4`), but the second, third and fourth try will each wait 3 seconds before re-executing.
+
+```json
+{
+  "flakyService": {
+    "file": "jobs/flakyService.js",
+    "cron": "*/1 * * * *",
+    "attempts": 4,
+    "backoff": {
+      "delay": 3000,
+      "type": "fixed"
+    }
+  }
+}
+```
+
+##### incremenal
+
+The following configuration example defines a job called `flakyServiceWithLongRegenerationTime` that is defined to run every minute on every day.
+`flakyServiceWithLongRegenerationTime` will be executed a second, third, fourth, fifth and sixth time when it fails (`attempts: 4`), but:
+- the second try will wait 6 seconds,
+- the third try will wait 9 seconds,
+- the forth try will wait 12 seconds,
+before re-executing.
+
+```json
+{
+  "flakyServiceWithLongRegenerationTime": {
+    "file": "jobs/flakyServiceWithLongRegenerationTime.js",
+    "cron": "*/1 * * * *",
+    "attempts": 4,
+    "backoff": {
+      "delay": 3000,
+      "type": "incremental"
+    }
+  }
+}
+```
+
+##### exponential
+
+The following configuration example defines a job called `anotherFlakyServiceWithLongRegenerationTime` that is defined to run every minute on every day.
+`anotherFlakyServiceWithLongRegenerationTime` will be executed a second and third time when it fails (`attempts: 4`), but:
+- the second try will wait 4 seconds (= 2000 * 2000 milliseconds),
+- the third try will wait 16 seconds (= 4000 * 4000 milliseconds),
+before re-executing.
+
+```json
+{
+  "anotherFlakyServiceWithLongRegenerationTime": {
+    "file": "jobs/anotherFlakyServiceWithLongRegenerationTime.js",
+    "cron": "*/1 * * * *",
+    "attempts": 3,
+    "backoff": {
+      "delay": 2000,
+      "type": "exponential"
+    }
+  }
+}
+```
