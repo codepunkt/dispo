@@ -117,7 +117,7 @@ var Dispo = function () {
                 this._logger = new _logger2.default(this.config.options.logging);
                 this._logger.init();
 
-                if ('enabled' in this.config.options.mailer && this.config.options.mailer.enabled === true) {
+                if (this.config.options.mailer && this.config.options.mailer.enabled) {
                   this._mailer = new _mailer2.default(this.config.options.mailer);
                   this._mailer.init();
                 }

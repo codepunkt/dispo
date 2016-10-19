@@ -49,8 +49,7 @@ export default class Dispo {
     this._logger = new Logger(this.config.options.logging)
     this._logger.init()
 
-    if ('enabled' in this.config.options.mailer &&
-      this.config.options.mailer.enabled === true) {
+    if (this.config.options.mailer && this.config.options.mailer.enabled) {
       this._mailer = new Mailer(this.config.options.mailer)
       this._mailer.init()
     }
