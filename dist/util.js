@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.parseJobs = exports.getAbsolutePath = undefined;
+exports.parseBackoff = exports.parseJobs = exports.getAbsolutePath = undefined;
 
 var _assign = require('babel-runtime/core-js/object/assign');
 
@@ -13,10 +13,6 @@ var _keys = require('babel-runtime/core-js/object/keys');
 
 var _keys2 = _interopRequireDefault(_keys);
 
-var _getIterator2 = require('babel-runtime/core-js/get-iterator');
-
-var _getIterator3 = _interopRequireDefault(_getIterator2);
-
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
@@ -25,6 +21,11 @@ var _path = require('path');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * @param {String} path
+ * @param {Number} [mode=fs.R_OK]
+ * @return {Boolean|String}
+ */
 var getAbsolutePath = exports.getAbsolutePath = function getAbsolutePath(path) {
   var mode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _fs2.default.R_OK;
 
@@ -32,48 +33,74 @@ var getAbsolutePath = exports.getAbsolutePath = function getAbsolutePath(path) {
   return _fs2.default.accessSync(dir, mode) || dir;
 };
 
+/**
+ * @param {Array<Object>} jobs
+ * @param {String} basedir
+ * @return {Array<Object>}
+ */
 var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
-  var res = [];
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(jobs)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var name = _step.value;
-      var _jobs$name = jobs[name];
-      var file = _jobs$name.file;
-      var cron = _jobs$name.cron;
-      var attempts = _jobs$name.attempts;
-      var recipients = _jobs$name.recipients;
+  return (0, _keys2.default)(jobs).reduce(function (res, name) {
+    var _jobs$name = jobs[name];
+    var file = _jobs$name.file;
+    var cron = _jobs$name.cron;
+    var attempts = _jobs$name.attempts;
+    var backoff = _jobs$name.backoff;
+    var recipients = _jobs$name.recipients;
 
 
-      if (!file) {
-        throw new Error('no file defined for job "' + name + '"');
-      }
-
-      var job = require(getAbsolutePath((0, _path.resolve)(basedir, file)));
-      res.push((0, _assign2.default)(cron ? { cron: cron } : {}, recipients ? { recipients: recipients } : {}, {
-        attempts: attempts || 3,
-        fn: job.default || job,
-        name: name
-      }));
+    if (!file) {
+      throw new Error('no file defined for job "' + name + '"');
     }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
+
+    var job = require(getAbsolutePath((0, _path.resolve)(basedir, file)));
+
+    var jobOptions = {
+      attempts: attempts || 3,
+      fn: job.default || job,
+      name: name
+    };
+    if (cron) {
+      jobOptions.cron = cron;
     }
+    if (backoff) {
+      jobOptions.backoff = backoff;
+    }
+    if (recipients) {
+      jobOptions.recipients = recipients;
+    }
+    res.push(jobOptions);
+    return res;
+  }, []);
+};
+
+/**
+ * @typedef {Object} BackoffOptions
+ * @property {String} type
+ * @property {Number} [exponent=2]
+ */
+/**
+ * Parses the given backoff options to iron out some inconveniences in kue.js, like e.g. type === 'exponential' only
+ * doubling the delay instead of letting it grow exponentially.
+ *
+ * @param {Boolean|BackoffOptions} [backoff] Backoff algorithm configuration
+ * @return {Boolean|BackoffOptions|Function} A backoff configuration that kue.js understands
+ */
+var parseBackoff = exports.parseBackoff = function parseBackoff(backoff) {
+  if (!backoff) {
+    return;
   }
 
-  return res;
+  if (backoff.type === 'incremental') {
+    return (0, _assign2.default)({}, backoff, { type: 'exponential' });
+  } else if (backoff.type === 'exponential') {
+    return function (attempt, delay) {
+      var range = [];
+      for (var n = 1; n < attempt; n++) {
+        range.push(n);
+      }
+      return range.reduce(function (result, attempt) {
+        return Math.pow(result, 2);
+      }, delay);
+    };
+  }
 };

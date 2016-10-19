@@ -58,7 +58,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /**
  * Maps log levels to terminal colors
- * @type {Object}
  */
 var mapLevelToColor = {
   error: 'red',
@@ -69,7 +68,6 @@ var mapLevelToColor = {
 
 /**
  * Default logger options
- * @type {Object}
  */
 var defaults = {
   winstonConfig: {
@@ -93,8 +91,8 @@ var defaults = {
 /**
  * Returns human readable time of the next job run based on the jobs creation date and delay
  *
- * @param  {String} createdAt - The jobs createdAt timestamp
- * @param  {String} delay - The jobs delay
+ * @param {String} createdAt - The jobs createdAt timestamp
+ * @param {String} delay - The jobs delay
  * @return {String} Human readable time of the next job run
  */
 var runsIn = function runsIn(createdAt, delay) {
@@ -104,8 +102,8 @@ var runsIn = function runsIn(createdAt, delay) {
 /**
  * Returns formatted date
  *
- * @param  {Date} date - Date to be formatted
- * @param  {String} format - Date format
+ * @param {Date} [date=Date.now()] - Date to be formatted
+ * @param {String} [format=HH:MM:ss] - Date format
  * @return {String} Formatted date
  */
 var dateTime = function dateTime() {
@@ -126,6 +124,11 @@ var Logger = function () {
     this.config = (0, _assign2.default)({}, defaults, options);
   }
 
+  /**
+   * @memberOf Logger
+   */
+
+
   (0, _createClass3.default)(Logger, [{
     key: 'init',
     value: function init() {
@@ -135,6 +138,12 @@ var Logger = function () {
       }
       this.winston = new _winston6.default.Logger(this.config.winstonConfig);
     }
+
+    /**
+     * @param {Array<any>} params
+     * @memberOf Logger
+     */
+
   }, {
     key: 'error',
     value: function error() {
@@ -142,6 +151,11 @@ var Logger = function () {
 
       (_winston = this.winston).error.apply(_winston, arguments);
     }
+    /**
+     * @param {Array<any>} params
+     * @memberOf Logger
+     */
+
   }, {
     key: 'info',
     value: function info() {
@@ -149,6 +163,11 @@ var Logger = function () {
 
       (_winston2 = this.winston).info.apply(_winston2, arguments);
     }
+    /**
+     * @param {Array<any>} params
+     * @memberOf Logger
+     */
+
   }, {
     key: 'verbose',
     value: function verbose() {
@@ -156,6 +175,11 @@ var Logger = function () {
 
       (_winston3 = this.winston).verbose.apply(_winston3, arguments);
     }
+    /**
+     * @param {Array<any>} params
+     * @memberOf Logger
+     */
+
   }, {
     key: 'warn',
     value: function warn() {
@@ -163,6 +187,12 @@ var Logger = function () {
 
       (_winston4 = this.winston).warn.apply(_winston4, arguments);
     }
+
+    /**
+     * @param {{data:{name:String},id:String}} job
+     * @memberOf Logger
+     */
+
   }, {
     key: 'logStart',
     value: function () {
@@ -197,6 +227,12 @@ var Logger = function () {
 
       return logStart;
     }()
+
+    /**
+     * @param {{_attempts:String,data:{name:String},duration:String,id:String}} job
+     * @memberOf Logger
+     */
+
   }, {
     key: 'logComplete',
     value: function () {
@@ -234,6 +270,13 @@ var Logger = function () {
 
       return logComplete;
     }()
+
+    /**
+     * @param {{data:{attempts:String,name:String},id:String}} job
+     * @param {String} msg
+     * @memberOf Logger
+     */
+
   }, {
     key: 'logFailure',
     value: function () {
@@ -269,6 +312,13 @@ var Logger = function () {
 
       return logFailure;
     }()
+
+    /**
+     * @param {{data:{name:String},id:String}} job
+     * @param {String} msg
+     * @memberOf Logger
+     */
+
   }, {
     key: 'logFailedAttempt',
     value: function () {
@@ -303,6 +353,12 @@ var Logger = function () {
 
       return logFailedAttempt;
     }()
+
+    /**
+     * @param {{data:{name:String},_delay:String,created_at:String,id:String}} job
+     * @memberOf Logger
+     */
+
   }, {
     key: 'logQueued',
     value: function () {

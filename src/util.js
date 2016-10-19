@@ -1,28 +1,80 @@
 import fs from 'fs'
 import { resolve } from 'path'
 
+/**
+ * @param {String} path
+ * @param {Number} [mode=fs.R_OK]
+ * @return {Boolean|String}
+ */
 export const getAbsolutePath = (path, mode = fs.R_OK) => {
   const dir = resolve(path)
   return fs.accessSync(dir, mode) || dir
 }
 
+/**
+ * @param {Array<Object>} jobs
+ * @param {String} basedir
+ * @return {Array<Object>}
+ */
 export const parseJobs = (jobs, basedir) => {
-  const res = []
+  return Object
+    .keys(jobs)
+    .reduce((res, name) => {
+      const { file, cron, attempts, backoff, recipients } = jobs[name]
 
-  for (let name of Object.keys(jobs)) {
-    const { file, cron, attempts, recipients } = jobs[name]
+      if (!file) {
+        throw new Error(`no file defined for job "${name}"`)
+      }
 
-    if (!file) {
-      throw new Error(`no file defined for job "${name}"`)
-    }
+      const job = require(getAbsolutePath(resolve(basedir, file)))
 
-    const job = require(getAbsolutePath(resolve(basedir, file)))
-    res.push(Object.assign(cron ? { cron } : {}, recipients ? { recipients } : {}, {
-      attempts: attempts || 3,
-      fn: job.default || job,
-      name
-    }))
+      const jobOptions = {
+        attempts: attempts || 3,
+        fn: job.default || job,
+        name
+      }
+      if (cron) {
+        jobOptions.cron = cron
+      }
+      if (backoff) {
+        jobOptions.backoff = backoff
+      }
+      if (recipients) {
+        jobOptions.recipients = recipients
+      }
+      res.push(jobOptions)
+      return res
+    }, [])
+}
+
+/**
+ * @typedef {Object} BackoffOptions
+ * @property {String} type
+ * @property {Number} [exponent=2]
+ */
+/**
+ * Parses the given backoff options to iron out some inconveniences in kue.js, like e.g. type === 'exponential' only
+ * doubling the delay instead of letting it grow exponentially.
+ *
+ * @param {Boolean|BackoffOptions} [backoff] Backoff algorithm configuration
+ * @return {Boolean|BackoffOptions|Function} A backoff configuration that kue.js understands
+ */
+export const parseBackoff = (backoff) => {
+  if (!backoff) {
+    return
   }
 
-  return res
+  if (backoff.type === 'incremental') {
+    return Object.assign({}, backoff, { type: 'exponential' })
+  } else if (backoff.type === 'exponential') {
+    return function (attempt, delay) {
+      let range = []
+      for (let n = 1; n < attempt; n++) {
+        range.push(n)
+      }
+      return range.reduce((result, attempt) => {
+        return Math.pow(result, 2)
+      }, delay)
+    }
+  }
 }

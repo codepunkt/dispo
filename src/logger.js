@@ -9,7 +9,6 @@ import { getJob } from '.'
 
 /**
  * Maps log levels to terminal colors
- * @type {Object}
  */
 const mapLevelToColor = {
   error: 'red',
@@ -20,7 +19,6 @@ const mapLevelToColor = {
 
 /**
  * Default logger options
- * @type {Object}
  */
 const defaults = {
   winstonConfig: {
@@ -47,8 +45,8 @@ const defaults = {
 /**
  * Returns human readable time of the next job run based on the jobs creation date and delay
  *
- * @param  {String} createdAt - The jobs createdAt timestamp
- * @param  {String} delay - The jobs delay
+ * @param {String} createdAt - The jobs createdAt timestamp
+ * @param {String} delay - The jobs delay
  * @return {String} Human readable time of the next job run
  */
 const runsIn = (createdAt, delay) => {
@@ -58,8 +56,8 @@ const runsIn = (createdAt, delay) => {
 /**
  * Returns formatted date
  *
- * @param  {Date} date - Date to be formatted
- * @param  {String} format - Date format
+ * @param {Date} [date=Date.now()] - Date to be formatted
+ * @param {String} [format=HH:MM:ss] - Date format
  * @return {String} Formatted date
  */
 const dateTime = (date = Date.now(), format = 'HH:MM:ss') => {
@@ -74,6 +72,9 @@ export default class Logger {
     this.config = Object.assign({}, defaults, options)
   }
 
+  /**
+   * @memberOf Logger
+   */
   init () {
     const logpath = path.resolve(this.config.path)
     if (!existsSync(logpath)) {
@@ -82,33 +83,71 @@ export default class Logger {
     this.winston = new winston.Logger(this.config.winstonConfig)
   }
 
+  /**
+   * @param {Array<any>} params
+   * @memberOf Logger
+   */
   error (...params) { this.winston.error(...params) }
+  /**
+   * @param {Array<any>} params
+   * @memberOf Logger
+   */
   info (...params) { this.winston.info(...params) }
+  /**
+   * @param {Array<any>} params
+   * @memberOf Logger
+   */
   verbose (...params) { this.winston.verbose(...params) }
+  /**
+   * @param {Array<any>} params
+   * @memberOf Logger
+   */
   warn (...params) { this.winston.warn(...params) }
 
+  /**
+   * @param {{data:{name:String},id:String}} job
+   * @memberOf Logger
+   */
   async logStart (job) {
     const { data, id } = await getJob(job)
     this.winston.info(`Starting ${data.name}`, Object.assign({ id }, data))
   }
 
+  /**
+   * @param {{_attempts:String,data:{name:String},duration:String,id:String}} job
+   * @memberOf Logger
+   */
   async logComplete (job) {
     const { _attempts, data, duration, id } = await getJob(job)
     const message = `Finished ${data.name} after ${prettyMs(Number(duration))}`
     this.winston.info(message, Object.assign({ id, duration, tries: _attempts }, data))
   }
 
+  /**
+   * @param {{data:{attempts:String,name:String},id:String}} job
+   * @param {String} msg
+   * @memberOf Logger
+   */
   async logFailure (job, msg) {
     const { data, id } = await getJob(job)
     const message = `Failed ${data.name} with message "${msg}" after ${data.attempts} tries`
     this.winston.error(message, Object.assign({ id, message: msg }, data))
   }
 
+  /**
+   * @param {{data:{name:String},id:String}} job
+   * @param {String} msg
+   * @memberOf Logger
+   */
   async logFailedAttempt (job, msg) {
     const { data, id } = await getJob(job)
     this.winston.warn(`Error on ${data.name}`, Object.assign({ id, message: msg }, data))
   }
 
+  /**
+   * @param {{data:{name:String},_delay:String,created_at:String,id:String}} job
+   * @memberOf Logger
+   */
   async logQueued ({ data, id, created_at: createdAt, _delay: delay }) {
     const message = `Queued ${data.name} to run in ${runsIn(createdAt, delay)}`
     this.winston.info(message, Object.assign({ id }, data))
