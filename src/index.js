@@ -5,6 +5,7 @@ import zmq from 'zmq-prebuilt'
 import { promisify } from 'bluebird'
 import { merge, omit } from 'lodash'
 import Logger from './logger'
+import Mailer from './mailer'
 import { parseBackoff } from './util'
 
 const { NODE_ENV } = process.env
@@ -16,7 +17,8 @@ const defaultConfig = {
   jobs: [],
   options: {
     port: 5555,
-    logging: { path: 'log' }
+    logging: { path: 'log' },
+    mailer: { enabled: false }
   }
 }
 
@@ -56,6 +58,11 @@ export default class Dispo {
     this._logger = new Logger(this.config.options.logging)
     this._logger.init()
 
+    if (this.config.options.mailer && this.config.options.mailer.enabled) {
+      this._mailer = new Mailer(this.config.options.mailer)
+      this._mailer.init()
+    }
+
     this._initSocket()
     this._initQueue(this.config.options.queue)
 
@@ -78,11 +85,15 @@ export default class Dispo {
    * @param {DefineJobOptions} options - Job options
    * @return {Promise<void>}
    */
-  async defineJob ({ attempts, cron, fn, name, backoff }) {
+  async defineJob ({ attempts, cron, recipients, fn, name, backoff }) {
     assert(name, 'Job must have a name')
 
     const options = { attempts, backoff }
     this._queue.process(name, (job, done) => fn(job).then(done, done))
+
+    if (recipients) {
+      options.recipients = recipients
+    }
 
     if (cron) {
       options.cron = cron
@@ -104,18 +115,39 @@ export default class Dispo {
     this._queue.watchStuckJobs(5e3)
 
     if (NODE_ENV !== 'test') {
-      this._queue.on('job start', async (id) => await this._logger.logStart(id))
-      this._queue.on('job failed attempt', async (id, msg) => await this._logger.logFailedAttempt(id, msg))
-      this._queue.on('job failed', async (id, msg) => await this._logger.logFailure(id, msg))
-      this._queue.on('job complete', async (id) => await this._logger.logComplete(id))
+      this._queue.on('job start', async (id) => await this._handleStart(id))
+      this._queue.on('job failed attempt', async (id, msg) => await this._handleFailedAttempt(id, msg))
+      this._queue.on('job failed', async (id, msg) => await this._handleFailed(id, msg))
+      this._queue.on('job complete', async (id) => await this._handleComplete(id))
     }
 
-    this._queue.on('job complete', async (id) => {
-      const job = await getJob(id)
-      if (job.data.cron) {
-        await this._queueJob(job.data.name, job.data)
-      }
-    })
+    this._queue.on('job complete', async (id) => await this.__handleCompleteAlways(id))
+  }
+
+  async _handleStart (id) {
+    await this._logger.logStart(id)
+  }
+
+  async _handleFailedAttempt (id, msg) {
+    await this._logger.logFailedAttempt(id, msg)
+  }
+
+  async _handleFailed (id, msg) {
+    await this._logger.logFailure(id, msg)
+    if (this._mailer) {
+      await this._mailer.sendMail(id)
+    }
+  }
+
+  async _handleComplete (id) {
+    await this._logger.logComplete(id)
+  }
+
+  async _handleCompleteAlways (id) {
+    const job = await getJob(id)
+    if (job.data.cron) {
+      await this._queueJob(job.data.name, job.data)
+    }
   }
 
   /**

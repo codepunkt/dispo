@@ -20,7 +20,7 @@ export const parseJobs = (jobs, basedir) => {
   return Object
     .keys(jobs)
     .reduce((res, name) => {
-      const { file, cron, attempts, backoff } = jobs[name]
+      const { file, cron, attempts, backoff, recipients } = jobs[name]
 
       if (!file) {
         throw new Error(`no file defined for job "${name}"`)
@@ -38,6 +38,9 @@ export const parseJobs = (jobs, basedir) => {
       }
       if (backoff) {
         jobOptions.backoff = backoff
+      }
+      if (recipients) {
+        jobOptions.recipients = recipients
       }
       res.push(jobOptions)
       return res

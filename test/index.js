@@ -5,6 +5,7 @@ import chai, { expect } from 'chai'
 import path, { resolve } from 'path'
 import Scheduler from '../src'
 import Logger from '../src/logger'
+import Mailer from '../src/mailer'
 
 import {
   getAbsolutePath,
@@ -61,14 +62,14 @@ describe('Utility methods', () => {
       const fn = require(`../${file}`)
 
       const result = parseJobs({
-        random: { file, attempts: 2 },
+        random: { file, attempts: 2, recipients: 'example@email.com' },
         alsoRandom: { file, cron: '*/2 * * * *' },
         backoffFixed: { file, attempts: 2, backoff: { delay: 3000, type: 'fixed' } },
         backoffExponentially: { file, attempts: 2, backoff: { delay: 3000, type: 'exponential' } }
       }, base)
 
       expect(result).to.deep.equal([
-        { name: 'random', attempts: 2, fn },
+        { name: 'random', attempts: 2, fn, recipients: 'example@email.com' },
         { name: 'alsoRandom', attempts: 3, fn, cron: '*/2 * * * *' },
         { name: 'backoffFixed', attempts: 2, fn, backoff: { delay: 3000, type: 'fixed' } },
         { name: 'backoffExponentially', attempts: 2, fn, backoff: { delay: 3000, type: 'exponential' } }
@@ -106,6 +107,18 @@ describe('Scheduler', () => {
       const scheduler = new Scheduler()
       scheduler.init()
       expect(scheduler._logger).to.be.instanceof(Logger)
+    })
+
+    it('initializes a mailer when switch is on', () => {
+      const scheduler = new Scheduler({options: {mailer: {enabled: true}}})
+      scheduler.init()
+      expect(scheduler._mailer).to.be.instanceof(Mailer)
+    })
+
+    it('doesn\'t initializes a mailer by default', () => {
+      const scheduler = new Scheduler()
+      scheduler.init()
+      expect(scheduler._mailer).to.be.undefined
     })
   })
 })

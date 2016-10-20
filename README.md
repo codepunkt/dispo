@@ -4,7 +4,7 @@
 
 Dispo is a job and cronjob scheduler for Node.
 
-It uses [Kue](https://github.com/Automattic/kue) as its job queue and [Redis](http://redis.io/) to store job data. Definition of recurring jobs is done using crontab syntax, one-off jobs can be queued using [ZeroMQ](http://zeromq.org/) requests.
+It uses [Kue](https://github.com/Automattic/kue) as its job queue and [Redis](http://redis.io/) to store job data. Definition of recurring jobs is done using crontab syntax, one-off jobs can be queued using [ZeroMQ](http://zeromq.org/) requests. [nodemailer](https://github.com/nodemailer/nodemailer) and [nodemailer-sendmail-transport](https://github.com/andris9/nodemailer-sendmail-transport) are being used to send emails.
 
 All Jobs, regardless if running automatically or queued on demand for single runs, have to be defined in a configuration file. Jobs defined as cronjobs with a recurring interval are scheduled and run automatically.
 
@@ -46,6 +46,8 @@ The following configuration example defines a job called `logRandomNumber` that 
 
 The `attempts` property on the database cleanup job defines that the job is only attempted to run once. When the property is not explicitely set, it defaults to 3 so a job is retried twice on failure. When a recurringly scheduled job/cronjob reaches fails on each of its attempts, it is not automatically rescheduled.
 
+The `recipients` property will override the default set in [mailer.js](src/mailer.js). You can also use it to disable sending an email for a job when it is enabled globally. You can set the global configuration in [index.js](src/index.js).
+
 ```json
 {
   "jobs": {
@@ -55,11 +57,16 @@ The `attempts` property on the database cleanup job defines that the job is only
     "databaseCleanup": {
       "file": "jobs/databaseCleanup.js",
       "cron": "0 1 * * * *",
-      "attempts": 1
+      "attempts": 1,
+      "recipients": "example@email.com"
     }
   }
 }
 ```
+
+#### Send an email on job failure
+
+Dispo supports sending an email when a job fails after all available retries. You can toggle the feature in [index.js](src/index.js) and configure your mail server in [mailer.js](src/mailer.js). By default, Dispo wil use sendmail (through [nodemailer-sendmail-transport](https://github.com/andris9/nodemailer-sendmail-transport)). Per job configuration of the recipients are available through the [configuration file](https://github.com/gonsfx/dispo#job-configuration).
 
 #### Attempts with delay and backoff for failing jobs
 

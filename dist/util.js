@@ -45,6 +45,7 @@ var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
     var cron = _jobs$name.cron;
     var attempts = _jobs$name.attempts;
     var backoff = _jobs$name.backoff;
+    var recipients = _jobs$name.recipients;
 
 
     if (!file) {
@@ -63,6 +64,9 @@ var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
     }
     if (backoff) {
       jobOptions.backoff = backoff;
+    }
+    if (recipients) {
+      jobOptions.recipients = recipients;
     }
     res.push(jobOptions);
     return res;
