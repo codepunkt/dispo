@@ -52,6 +52,7 @@ export default class Dispo {
   /**
    * Initializes logging, socket bindings and the queue mechanism
    *
+   * @memberOf Dispo
    * @return {Promise<void>}
    */
   async init () {
@@ -118,20 +119,39 @@ export default class Dispo {
       this._queue.on('job start', async (id) => await this._handleStart(id))
       this._queue.on('job failed attempt', async (id, msg) => await this._handleFailedAttempt(id, msg))
       this._queue.on('job failed', async (id, msg) => await this._handleFailed(id, msg))
-      this._queue.on('job complete', async (id) => await this._handleComplete(id))
     }
 
-    this._queue.on('job complete', async (id) => await this.__handleCompleteAlways(id))
+    this._queue.on('job complete', async (id) => await this._handleComplete(id))
   }
 
+  /**
+   * Logs job starts
+   *
+   * @memberOf Dispo
+   * @param {Number} id - Job id
+   */
   async _handleStart (id) {
     await this._logger.logStart(id)
   }
 
+  /**
+   * Logs failed attempts
+   *
+   * @memberOf Dispo
+   * @param {Number} id - Job id
+   * @param {String} msg - Error message
+   */
   async _handleFailedAttempt (id, msg) {
     await this._logger.logFailedAttempt(id, msg)
   }
 
+  /**
+   * Logs failed jobs and sends notification emails if configured to do so
+   *
+   * @memberOf Dispo
+   * @param {Number} id - Job id
+   * @param {String} msg - Error message
+   */
   async _handleFailed (id, msg) {
     await this._logger.logFailure(id, msg)
     if (this._mailer) {
@@ -139,11 +159,17 @@ export default class Dispo {
     }
   }
 
+  /**
+   * Logs completed jobs and re-queues them when defined as a cron
+   *
+   * @memberOf Dispo
+   * @param {Number} id - Job id
+   */
   async _handleComplete (id) {
-    await this._logger.logComplete(id)
-  }
+    if (NODE_ENV !== 'test') {
+      await this._logger.logComplete(id)
+    }
 
-  async _handleCompleteAlways (id) {
     const job = await getJob(id)
     if (job.data.cron) {
       await this._queueJob(job.data.name, job.data)
