@@ -18,7 +18,7 @@ const defaultConfig = {
   options: {
     port: 5555,
     logging: { path: 'log' },
-    mailer: { enabled: false }
+    mailer: null
   }
 }
 
@@ -39,6 +39,7 @@ export const getJob = promisify(kue.Job.get)
  * Dispo Scheduler
  */
 export default class Dispo {
+
   /**
    * Creates an instance of Dispo.
    *
@@ -59,7 +60,7 @@ export default class Dispo {
     this._logger = new Logger(this.config.options.logging)
     this._logger.init()
 
-    if (this.config.options.mailer && this.config.options.mailer.enabled) {
+    if (this.config.options.mailer) {
       this._mailer = new Mailer(this.config.options.mailer)
       this._mailer.init()
     }
@@ -86,14 +87,14 @@ export default class Dispo {
    * @param {DefineJobOptions} options - Job options
    * @return {Promise<void>}
    */
-  async defineJob ({ attempts, cron, recipients, fn, name, backoff }) {
+  async defineJob ({ attempts, cron, notifyOnError, fn, name, backoff }) {
     assert(name, 'Job must have a name')
 
     const options = { attempts, backoff }
     this._queue.process(name, (job, done) => fn(job).then(done, done))
 
-    if (recipients) {
-      options.recipients = recipients
+    if (notifyOnError) {
+      options.notifyOnError = notifyOnError
     }
 
     if (cron) {
@@ -154,8 +155,9 @@ export default class Dispo {
    */
   async _handleFailed (id, msg) {
     await this._logger.logFailure(id, msg)
+    const job = await getJob(id)
     if (this._mailer) {
-      await this._mailer.sendMail(id)
+      await this._mailer.sendMail(id, job.error())
     }
   }
 
@@ -248,6 +250,7 @@ export default class Dispo {
         .attempts(attempts)
 
       if (backoff) {
+        console.log(name, backoff)
         job.backoff(parseBackoff(backoff))
       }
 

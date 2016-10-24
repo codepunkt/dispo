@@ -7,14 +7,9 @@ import { getJob } from '.'
  * @type {Object}
  */
 const defaults = {
-  nodemailerConfig: {
-    transportOptions: null,
-    mailOptions: {
-      from: 'info@dispo-cheduler.com',
-      to: '', // list of receivers, override this through the jobs config file
-      subject: 'Dispo - job and cronjob scheduler for Node',
-      text: ''
-    }
+  transport: sendmailTransport(),
+  mail: {
+    from: 'Dispo <dispo@example.com>'
   }
 }
 
@@ -22,35 +17,36 @@ const defaults = {
  * Mailer
  */
 export default class Mailer {
-  constructor (options) {
-    this.config = Object.assign({}, defaults, options)
+
+  /**
+   * Creates an instance of Mailer.
+   *
+   * @memberOf Mailer
+   * @param {Object} [config={}]
+   */
+  constructor (config) {
+    this.config = Object.assign({}, defaults, config)
   }
 
+  /**
+   * Initializes a nodemailer transport
+   *
+   * @memberOf Mailer
+   * @return {Promise<void>}
+   */
   init () {
-    this._mailer = nodemailer.createTransport(this.config.nodemailerConfig.transportOptions || sendmailTransport())
+    this._mailer = nodemailer.createTransport(this.config.transport)
   }
 
-  async sendMail (job) {
-    let mailOptions = this.config.nodemailerConfig.mailOptions
-    const { data, id } = await getJob(job)
+  async sendMail (job, message) {
+    const { data: { notifyOnError, name }, id } = await getJob(job)
 
-    // set recipients to empty string to disable mail in a per job basis
-    if ('recipients' in data) {
-      mailOptions.to = data.recipients
-    }
+    if (!notifyOnError) return
 
-    if (!('enabled' in this.config)) {
-      return
-    }
-    if (this.config.enabled === false) {
-      return
-    }
-    if (mailOptions.to === '') {
-      return
-    }
-
-    mailOptions.text = `Job ${id} - ${data.name}: Failed on all ${data.attempts} attempts.`
-
-    return this._mailer.sendMail(mailOptions)
+    this._mailer.sendMail(Object.assign({}, this.config.mail, {
+      to: notifyOnError,
+      subject: `Job "${name}" (id ${id}) failed`,
+      text: `Job "${name}" (id ${id}) failed\n\n${message}`
+    }))
   }
 }

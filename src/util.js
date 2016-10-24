@@ -20,7 +20,7 @@ export const parseJobs = (jobs, basedir) => {
   return Object
     .keys(jobs)
     .reduce((res, name) => {
-      const { file, cron, attempts, backoff, recipients } = jobs[name]
+      const { file, cron, attempts, backoff, notifyOnError } = jobs[name]
 
       if (!file) {
         throw new Error(`no file defined for job "${name}"`)
@@ -28,21 +28,17 @@ export const parseJobs = (jobs, basedir) => {
 
       const job = require(getAbsolutePath(resolve(basedir, file)))
 
-      const jobOptions = {
+      const options = {
         attempts: attempts || 3,
         fn: job.default || job,
         name
       }
-      if (cron) {
-        jobOptions.cron = cron
-      }
-      if (backoff) {
-        jobOptions.backoff = backoff
-      }
-      if (recipients) {
-        jobOptions.recipients = recipients
-      }
-      res.push(jobOptions)
+
+      if (cron) options.cron = cron
+      if (backoff) options.backoff = backoff
+      if (notifyOnError) options.notifyOnError = notifyOnError
+
+      res.push(options)
       return res
     }, [])
 }

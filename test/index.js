@@ -62,14 +62,14 @@ describe('Utility methods', () => {
       const fn = require(`../${file}`)
 
       const result = parseJobs({
-        random: { file, attempts: 2, recipients: 'example@email.com' },
+        random: { file, attempts: 2, notifyOnError: 'example@email.com' },
         alsoRandom: { file, cron: '*/2 * * * *' },
         backoffFixed: { file, attempts: 2, backoff: { delay: 3000, type: 'fixed' } },
         backoffExponentially: { file, attempts: 2, backoff: { delay: 3000, type: 'exponential' } }
       }, base)
 
       expect(result).to.deep.equal([
-        { name: 'random', attempts: 2, fn, recipients: 'example@email.com' },
+        { name: 'random', attempts: 2, fn, notifyOnError: 'example@email.com' },
         { name: 'alsoRandom', attempts: 3, fn, cron: '*/2 * * * *' },
         { name: 'backoffFixed', attempts: 2, fn, backoff: { delay: 3000, type: 'fixed' } },
         { name: 'backoffExponentially', attempts: 2, fn, backoff: { delay: 3000, type: 'exponential' } }

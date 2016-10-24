@@ -72,7 +72,7 @@ var defaultConfig = {
   options: {
     port: 5555,
     logging: { path: 'log' },
-    mailer: { enabled: false }
+    mailer: null
   }
 };
 
@@ -94,6 +94,7 @@ var getJob = exports.getJob = (0, _bluebird.promisify)(_kue2.default.Job.get);
  */
 
 var Dispo = function () {
+
   /**
    * Creates an instance of Dispo.
    *
@@ -128,7 +129,7 @@ var Dispo = function () {
                 this._logger = new _logger2.default(this.config.options.logging);
                 this._logger.init();
 
-                if (this.config.options.mailer && this.config.options.mailer.enabled) {
+                if (this.config.options.mailer) {
                   this._mailer = new _mailer2.default(this.config.options.mailer);
                   this._mailer.init();
                 }
@@ -227,7 +228,7 @@ var Dispo = function () {
       var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(_ref3) {
         var attempts = _ref3.attempts;
         var cron = _ref3.cron;
-        var recipients = _ref3.recipients;
+        var notifyOnError = _ref3.notifyOnError;
         var fn = _ref3.fn;
         var name = _ref3.name;
         var backoff = _ref3.backoff;
@@ -244,8 +245,8 @@ var Dispo = function () {
                   return fn(job).then(done, done);
                 });
 
-                if (recipients) {
-                  options.recipients = recipients;
+                if (notifyOnError) {
+                  options.notifyOnError = notifyOnError;
                 }
 
                 if (!cron) {
@@ -472,6 +473,7 @@ var Dispo = function () {
     key: '_handleFailed',
     value: function () {
       var _ref10 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee9(id, msg) {
+        var job;
         return _regenerator2.default.wrap(function _callee9$(_context9) {
           while (1) {
             switch (_context9.prev = _context9.next) {
@@ -480,15 +482,21 @@ var Dispo = function () {
                 return this._logger.logFailure(id, msg);
 
               case 2:
+                _context9.next = 4;
+                return getJob(id);
+
+              case 4:
+                job = _context9.sent;
+
                 if (!this._mailer) {
-                  _context9.next = 5;
+                  _context9.next = 8;
                   break;
                 }
 
-                _context9.next = 5;
-                return this._mailer.sendMail(id);
+                _context9.next = 8;
+                return this._mailer.sendMail(id, job.error());
 
-              case 5:
+              case 8:
               case 'end':
                 return _context9.stop();
             }
@@ -710,6 +718,7 @@ var Dispo = function () {
                     var job = _this3._queue.create(name, (0, _assign2.default)(options, { name: name })).delay(delay || _this3._calculateDelay(cron)).attempts(attempts);
 
                     if (backoff) {
+                      console.log(name, backoff);
                       job.backoff((0, _util.parseBackoff)(backoff));
                     }
 

@@ -91,7 +91,7 @@ The following configuration example defines a job called `flakyService` that is 
 }
 ```
 
-##### incremenal
+##### incremental
 
 The following configuration example defines a job called `flakyServiceWithLongRegenerationTime` that is defined to run every minute on every day.
 `flakyServiceWithLongRegenerationTime` will be executed a second, third, fourth, fifth and sixth time when it fails (`attempts: 4`), but:

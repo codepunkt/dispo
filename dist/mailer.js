@@ -41,14 +41,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @type {Object}
  */
 var defaults = {
-  nodemailerConfig: {
-    transportOptions: null,
-    mailOptions: {
-      from: 'info@dispo-cheduler.com',
-      to: '', // list of receivers, override this through the jobs config file
-      subject: 'Dispo - job and cronjob scheduler for Node',
-      text: ''
-    }
+  transport: (0, _nodemailerSendmailTransport2.default)(),
+  mail: {
+    from: 'Dispo <dispo@example.com>'
   }
 };
 
@@ -57,43 +52,53 @@ var defaults = {
  */
 
 var Mailer = function () {
-  function Mailer(options) {
+
+  /**
+   * Creates an instance of Mailer.
+   *
+   * @memberOf Mailer
+   * @param {Object} [config={}]
+   */
+  function Mailer(config) {
     (0, _classCallCheck3.default)(this, Mailer);
 
-    this.config = (0, _assign2.default)({}, defaults, options);
+    this.config = (0, _assign2.default)({}, defaults, config);
   }
+
+  /**
+   * Initializes a nodemailer transport
+   *
+   * @memberOf Mailer
+   * @return {Promise<void>}
+   */
+
 
   (0, _createClass3.default)(Mailer, [{
     key: 'init',
     value: function init() {
-      this._mailer = _nodemailer2.default.createTransport(this.config.nodemailerConfig.transportOptions || (0, _nodemailerSendmailTransport2.default)());
+      this._mailer = _nodemailer2.default.createTransport(this.config.transport);
     }
   }, {
     key: 'sendMail',
     value: function () {
-      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(job) {
-        var mailOptions, _ref2, data, id;
+      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(job, message) {
+        var _ref2, _ref2$data, notifyOnError, name, id;
 
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                mailOptions = this.config.nodemailerConfig.mailOptions;
-                _context.next = 3;
+                _context.next = 2;
                 return (0, _.getJob)(job);
 
-              case 3:
+              case 2:
                 _ref2 = _context.sent;
-                data = _ref2.data;
+                _ref2$data = _ref2.data;
+                notifyOnError = _ref2$data.notifyOnError;
+                name = _ref2$data.name;
                 id = _ref2.id;
 
-                // set recipients to empty string to disable mail in a per job basis
-
-                if ('recipients' in data) {
-                  mailOptions.to = data.recipients;
-                }
-
-                if ('enabled' in this.config) {
+                if (notifyOnError) {
                   _context.next = 9;
                   break;
                 }
@@ -101,28 +106,14 @@ var Mailer = function () {
                 return _context.abrupt('return');
 
               case 9:
-                if (!(this.config.enabled === false)) {
-                  _context.next = 11;
-                  break;
-                }
 
-                return _context.abrupt('return');
+                this._mailer.sendMail((0, _assign2.default)({}, this.config.mail, {
+                  to: notifyOnError,
+                  subject: 'Job "' + name + '" (id ' + id + ') failed',
+                  text: 'Job "' + name + '" (id ' + id + ') failed\n\n' + message
+                }));
 
-              case 11:
-                if (!(mailOptions.to === '')) {
-                  _context.next = 13;
-                  break;
-                }
-
-                return _context.abrupt('return');
-
-              case 13:
-
-                mailOptions.text = 'Job ' + id + ' - ' + data.name + ': Failed on all ' + data.attempts + ' attempts.';
-
-                return _context.abrupt('return', this._mailer.sendMail(mailOptions));
-
-              case 15:
+              case 10:
               case 'end':
                 return _context.stop();
             }
@@ -130,7 +121,7 @@ var Mailer = function () {
         }, _callee, this);
       }));
 
-      function sendMail(_x) {
+      function sendMail(_x, _x2) {
         return _ref.apply(this, arguments);
       }
 

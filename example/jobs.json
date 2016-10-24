@@ -1,33 +1,36 @@
 {
+  "options": {
+    "mailer": true
+  },
 	"jobs": {
-		"random": { "file": "jobs/random.js", "cron": "*/1 * * * *", "attempts": 3},
+		"random": { "file": "jobs/random.js", "cron": "*/1 * * * *", "attempts": 3 },
 		"randomSingle": { "file": "jobs/random.js", "attempts": 2 },
-		"backoffFixed": {
-			"file": "jobs/fail.js",
-			"cron": "*/1 * * * *",
-			"attempts": 4,
-			"delay": 3000,
-			"backoff": {
-				"type": "fixed"
-			}
-		},
-		"backoffDouble": {
-			"file": "jobs/fail.js",
-			"cron": "*/1 * * * *",
-			"attempts": 5,
-			"delay": 3000,
-			"backoff": {
-				"type": "incremental"
-			}
-		},
-		"backoffExponentially": {
-			"file": "jobs/fail.js",
-			"cron": "*/1 * * * *",
-			"attempts": 5,
-			"delay": 3000,
-			"backoff": {
-				"type": "exponential"
-			}
-		}
+    "flakyService": {
+      "file": "jobs/fail.js",
+      "cron": "*/1 * * * *",
+      "attempts": 4,
+      "backoff": {
+        "delay": 3000,
+        "type": "fixed"
+      }
+    },
+    "flakyServiceWithLongRegenerationTime": {
+      "file": "jobs/fail.js",
+      "cron": "*/1 * * * *",
+      "attempts": 4,
+      "backoff": {
+        "delay": 3000,
+        "type": "incremental"
+      }
+    },
+    "anotherFlakyServiceWithLongRegenerationTime": {
+      "file": "jobs/fail.js",
+      "cron": "*/1 * * * *",
+      "attempts": 3,
+      "backoff": {
+        "delay": 2000,
+        "type": "exponential"
+      }
+    }
 	}
 }
