@@ -64,9 +64,52 @@ The `recipients` property will override the default set in [mailer.js](src/maile
 }
 ```
 
-#### Send an email on job failure
+#### Send email on job failure
 
-Dispo supports sending an email when a job fails after all available retries. You can toggle the feature in [index.js](src/index.js) and configure your mail server in [mailer.js](src/mailer.js). By default, Dispo wil use sendmail (through [nodemailer-sendmail-transport](https://github.com/andris9/nodemailer-sendmail-transport)). Per job configuration of the recipients are available through the [configuration file](https://github.com/gonsfx/dispo#job-configuration).
+Dispo supports sending an email when a job fails after all available retries, using [nodemailer](https://github.com/nodemailer/nodemailer) to send the mails.
+To do so, simply enable the `mailer` in the configuration file and add email addresses that should be notified whenever a job fails to `notifyOnError` on a per job basis.
+
+```json
+{
+  "options": {
+    "mailer": true
+  },
+  "jobs": [
+    "mightFail": {
+      "file": "jobs/mightFail.js",
+      "cron": "*/1 * * * *",
+      "attempts": 3,
+      "notifyOnError": "john.doe@example.com"
+    }
+  ]
+}
+```
+
+By default, dispo will use [nodemailer-sendmail-transport](https://github.com/andris9/nodemailer-sendmail-transport) to send your emails, but you're free to add a different nodemailer transport such as smtp.
+You can also set mail options, such as `from`.
+
+```javascript
+import nodemailer from 'nodemailer'
+
+module.exports = {
+  options: {
+    mailer: {
+      transport: nodemailer.createTransport('smtp://smtp.example.com')
+      mail: {
+        from: 'dispo-reporter@example.com'
+      }
+    }
+  },
+  jobs: [
+    mightFail: {
+      file: 'jobs/mightFail.js',
+      cron: '*/1 * * * *',
+      attempts: 3,
+      notifyOnError: 'john.doe@example.com'
+    }
+  ]
+}
+```
 
 #### Attempts with delay and backoff for failing jobs
 
