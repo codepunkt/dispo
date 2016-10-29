@@ -1,4 +1,4 @@
-var zmq = require('zmq-prebuilt')
+var zmq = require('zeromq')
 var requester = zmq.socket('req')
 
 const data = {

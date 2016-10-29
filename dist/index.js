@@ -41,9 +41,9 @@ var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _zmqPrebuilt = require('zmq-prebuilt');
+var _zeromq = require('zeromq');
 
-var _zmqPrebuilt2 = _interopRequireDefault(_zmqPrebuilt);
+var _zeromq2 = _interopRequireDefault(_zeromq);
 
 var _bluebird = require('bluebird');
 
@@ -226,12 +226,12 @@ var Dispo = function () {
     key: 'defineJob',
     value: function () {
       var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(_ref3) {
-        var attempts = _ref3.attempts;
-        var cron = _ref3.cron;
-        var notifyOnError = _ref3.notifyOnError;
-        var fn = _ref3.fn;
-        var name = _ref3.name;
-        var backoff = _ref3.backoff;
+        var attempts = _ref3.attempts,
+            cron = _ref3.cron,
+            notifyOnError = _ref3.notifyOnError,
+            fn = _ref3.fn,
+            name = _ref3.name,
+            backoff = _ref3.backoff;
         var options;
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -582,7 +582,7 @@ var Dispo = function () {
 
       var port = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.options.port;
 
-      var responder = _zmqPrebuilt2.default.socket('rep');
+      var responder = _zeromq2.default.socket('rep');
 
       responder.on('message', function () {
         var _ref12 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee11(message) {
@@ -699,17 +699,14 @@ var Dispo = function () {
           while (1) {
             switch (_context13.prev = _context13.next) {
               case 0:
-                attempts = options.attempts;
-                cron = options.cron;
-                delay = options.delay;
-                backoff = options.backoff;
+                attempts = options.attempts, cron = options.cron, delay = options.delay, backoff = options.backoff;
 
                 (0, _assert2.default)(!!cron || !!delay, 'To queue a job, either `cron` or `delay` needs to be defined');
 
-                _context13.next = 7;
+                _context13.next = 4;
                 return this._isCronScheduled(name);
 
-              case 7:
+              case 4:
                 isScheduled = _context13.sent;
 
 
@@ -732,7 +729,7 @@ var Dispo = function () {
                   })();
                 }
 
-              case 9:
+              case 6:
               case 'end':
                 return _context13.stop();
             }

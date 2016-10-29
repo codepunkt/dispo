@@ -40,12 +40,12 @@ var getAbsolutePath = exports.getAbsolutePath = function getAbsolutePath(path) {
  */
 var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
   return (0, _keys2.default)(jobs).reduce(function (res, name) {
-    var _jobs$name = jobs[name];
-    var file = _jobs$name.file;
-    var cron = _jobs$name.cron;
-    var attempts = _jobs$name.attempts;
-    var backoff = _jobs$name.backoff;
-    var notifyOnError = _jobs$name.notifyOnError;
+    var _jobs$name = jobs[name],
+        file = _jobs$name.file,
+        cron = _jobs$name.cron,
+        attempts = _jobs$name.attempts,
+        backoff = _jobs$name.backoff,
+        notifyOnError = _jobs$name.notifyOnError;
 
 
     if (!file) {
