@@ -108,19 +108,21 @@ export default class Logger {
    * @param {{data:{name:String},id:String}} job
    * @memberOf Logger
    */
-  async logStart (job) {
-    const { data, id } = await getJob(job)
-    this.winston.info(`Starting ${data.name}`, Object.assign({ id }, data))
+  logStart (job) {
+    getJob(job).then(({ data, id }) => {
+      this.winston.info(`Starting ${data.name}`, Object.assign({ id }, data))
+    })
   }
 
   /**
    * @param {{_attempts:String,data:{name:String},duration:String,id:String}} job
    * @memberOf Logger
    */
-  async logComplete (job) {
-    const { _attempts, data, duration, id } = await getJob(job)
-    const message = `Finished ${data.name} after ${prettyMs(Number(duration))}`
-    this.winston.info(message, Object.assign({ id, duration, tries: _attempts }, data))
+  logComplete (job) {
+    getJob(job).then(({ _attempts, data, duration, id }) => {
+      const message = `Finished ${data.name} after ${prettyMs(Number(duration))}`
+      this.winston.info(message, Object.assign({ id, duration, tries: _attempts }, data))
+    })
   }
 
   /**
@@ -128,10 +130,11 @@ export default class Logger {
    * @param {String} msg
    * @memberOf Logger
    */
-  async logFailure (job, msg) {
-    const { data, id } = await getJob(job)
-    const message = `Failed ${data.name} with message "${msg}" after ${data.attempts} tries`
-    this.winston.error(message, Object.assign({ id, message: msg }, data))
+  logFailure (job, msg) {
+    getJob(job).then(({ data, id }) => {
+      const message = `Failed ${data.name} with message "${msg}" after ${data.attempts} tries`
+      this.winston.error(message, Object.assign({ id, message: msg }, data))
+    })
   }
 
   /**
@@ -139,16 +142,17 @@ export default class Logger {
    * @param {String} msg
    * @memberOf Logger
    */
-  async logFailedAttempt (job, msg) {
-    const { data, id } = await getJob(job)
-    this.winston.warn(`Error on ${data.name}`, Object.assign({ id, message: msg }, data))
+  logFailedAttempt (job, msg) {
+    getJob(job).then(({ data, id }) => {
+      this.winston.warn(`Error on ${data.name}`, Object.assign({ id, message: msg }, data))
+    })
   }
 
   /**
    * @param {{data:{name:String},_delay:String,created_at:String,id:String}} job
    * @memberOf Logger
    */
-  async logQueued ({ data, id, created_at: createdAt, _delay: delay }) {
+  logQueued ({ data, id, created_at: createdAt, _delay: delay }) {
     const message = `Queued ${data.name} to run in ${runsIn(createdAt, delay)}`
     this.winston.info(message, Object.assign({ id }, data))
   }

@@ -5,14 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseBackoff = exports.parseJobs = exports.getAbsolutePath = undefined;
 
-var _assign = require('babel-runtime/core-js/object/assign');
-
-var _assign2 = _interopRequireDefault(_assign);
-
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
@@ -39,7 +31,7 @@ var getAbsolutePath = exports.getAbsolutePath = function getAbsolutePath(path) {
  * @return {Array<Object>}
  */
 var parseJobs = exports.parseJobs = function parseJobs(jobs, basedir) {
-  return (0, _keys2.default)(jobs).reduce(function (res, name) {
+  return Object.keys(jobs).reduce(function (res, name) {
     var _jobs$name = jobs[name];
     var file = _jobs$name.file;
     var cron = _jobs$name.cron;
@@ -87,7 +79,7 @@ var parseBackoff = exports.parseBackoff = function parseBackoff(backoff) {
   }
 
   if (backoff.type === 'incremental') {
-    return (0, _assign2.default)({}, backoff, { type: 'exponential' });
+    return Object.assign({}, backoff, { type: 'exponential' });
   } else if (backoff.type === 'exponential') {
     return function (attempt, delay) {
       var range = [];

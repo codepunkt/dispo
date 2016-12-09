@@ -1,5 +1,6 @@
-var zmq = require('zmq-prebuilt')
-var requester = zmq.socket('req')
+import zmq from 'zmq-prebuilt'
+
+const requester = zmq.socket('req')
 
 const data = {
   name: 'randomSingle',

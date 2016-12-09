@@ -4,29 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _regenerator = require('babel-runtime/regenerator');
-
-var _regenerator2 = _interopRequireDefault(_regenerator);
-
-var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
-
-var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
-
-var _assign = require('babel-runtime/core-js/object/assign');
-
-var _assign2 = _interopRequireDefault(_assign);
-
-var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
-
-var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-var _createClass2 = require('babel-runtime/helpers/createClass');
-
-var _createClass3 = _interopRequireDefault(_createClass2);
-
-var _stringify = require('babel-runtime/core-js/json/stringify');
-
-var _stringify2 = _interopRequireDefault(_stringify);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _path = require('path');
 
@@ -56,6 +34,8 @@ var _ = require('.');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /**
  * Maps log levels to terminal colors
  */
@@ -79,7 +59,7 @@ var defaults = {
         var result = _chalk2.default[color]('[' + dateTime() + '] ' + options.message);
 
         if (!(0, _lodash.isEmpty)(options.meta)) {
-          result += _chalk2.default.dim(_chalk2.default[color]('\n  ' + (0, _stringify2.default)(options.meta)));
+          result += _chalk2.default.dim(_chalk2.default[color]('\n  ' + JSON.stringify(options.meta)));
         }
 
         return result;
@@ -119,9 +99,9 @@ var dateTime = function dateTime() {
 
 var Logger = function () {
   function Logger(options) {
-    (0, _classCallCheck3.default)(this, Logger);
+    _classCallCheck(this, Logger);
 
-    this.config = (0, _assign2.default)({}, defaults, options);
+    this.config = Object.assign({}, defaults, options);
   }
 
   /**
@@ -129,7 +109,7 @@ var Logger = function () {
    */
 
 
-  (0, _createClass3.default)(Logger, [{
+  _createClass(Logger, [{
     key: 'init',
     value: function init() {
       var logpath = _path2.default.resolve(this.config.path);
@@ -195,38 +175,16 @@ var Logger = function () {
 
   }, {
     key: 'logStart',
-    value: function () {
-      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(job) {
-        var _ref2, data, id;
+    value: function logStart(job) {
+      var _this = this;
 
-        return _regenerator2.default.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _context.next = 2;
-                return (0, _.getJob)(job);
+      (0, _.getJob)(job).then(function (_ref) {
+        var data = _ref.data;
+        var id = _ref.id;
 
-              case 2:
-                _ref2 = _context.sent;
-                data = _ref2.data;
-                id = _ref2.id;
-
-                this.winston.info('Starting ' + data.name, (0, _assign2.default)({ id: id }, data));
-
-              case 6:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function logStart(_x3) {
-        return _ref.apply(this, arguments);
-      }
-
-      return logStart;
-    }()
+        _this.winston.info('Starting ' + data.name, Object.assign({ id: id }, data));
+      });
+    }
 
     /**
      * @param {{_attempts:String,data:{name:String},duration:String,id:String}} job
@@ -235,41 +193,19 @@ var Logger = function () {
 
   }, {
     key: 'logComplete',
-    value: function () {
-      var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(job) {
-        var _ref4, _attempts, data, duration, id, message;
+    value: function logComplete(job) {
+      var _this2 = this;
 
-        return _regenerator2.default.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.next = 2;
-                return (0, _.getJob)(job);
+      (0, _.getJob)(job).then(function (_ref2) {
+        var _attempts = _ref2._attempts;
+        var data = _ref2.data;
+        var duration = _ref2.duration;
+        var id = _ref2.id;
 
-              case 2:
-                _ref4 = _context2.sent;
-                _attempts = _ref4._attempts;
-                data = _ref4.data;
-                duration = _ref4.duration;
-                id = _ref4.id;
-                message = 'Finished ' + data.name + ' after ' + (0, _prettyMs2.default)(Number(duration));
-
-                this.winston.info(message, (0, _assign2.default)({ id: id, duration: duration, tries: _attempts }, data));
-
-              case 9:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function logComplete(_x4) {
-        return _ref3.apply(this, arguments);
-      }
-
-      return logComplete;
-    }()
+        var message = 'Finished ' + data.name + ' after ' + (0, _prettyMs2.default)(Number(duration));
+        _this2.winston.info(message, Object.assign({ id: id, duration: duration, tries: _attempts }, data));
+      });
+    }
 
     /**
      * @param {{data:{attempts:String,name:String},id:String}} job
@@ -279,39 +215,17 @@ var Logger = function () {
 
   }, {
     key: 'logFailure',
-    value: function () {
-      var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(job, msg) {
-        var _ref6, data, id, message;
+    value: function logFailure(job, msg) {
+      var _this3 = this;
 
-        return _regenerator2.default.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                _context3.next = 2;
-                return (0, _.getJob)(job);
+      (0, _.getJob)(job).then(function (_ref3) {
+        var data = _ref3.data;
+        var id = _ref3.id;
 
-              case 2:
-                _ref6 = _context3.sent;
-                data = _ref6.data;
-                id = _ref6.id;
-                message = 'Failed ' + data.name + ' with message "' + msg + '" after ' + data.attempts + ' tries';
-
-                this.winston.error(message, (0, _assign2.default)({ id: id, message: msg }, data));
-
-              case 7:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function logFailure(_x5, _x6) {
-        return _ref5.apply(this, arguments);
-      }
-
-      return logFailure;
-    }()
+        var message = 'Failed ' + data.name + ' with message "' + msg + '" after ' + data.attempts + ' tries';
+        _this3.winston.error(message, Object.assign({ id: id, message: msg }, data));
+      });
+    }
 
     /**
      * @param {{data:{name:String},id:String}} job
@@ -321,38 +235,16 @@ var Logger = function () {
 
   }, {
     key: 'logFailedAttempt',
-    value: function () {
-      var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(job, msg) {
-        var _ref8, data, id;
+    value: function logFailedAttempt(job, msg) {
+      var _this4 = this;
 
-        return _regenerator2.default.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                _context4.next = 2;
-                return (0, _.getJob)(job);
+      (0, _.getJob)(job).then(function (_ref4) {
+        var data = _ref4.data;
+        var id = _ref4.id;
 
-              case 2:
-                _ref8 = _context4.sent;
-                data = _ref8.data;
-                id = _ref8.id;
-
-                this.winston.warn('Error on ' + data.name, (0, _assign2.default)({ id: id, message: msg }, data));
-
-              case 6:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function logFailedAttempt(_x7, _x8) {
-        return _ref7.apply(this, arguments);
-      }
-
-      return logFailedAttempt;
-    }()
+        _this4.winston.warn('Error on ' + data.name, Object.assign({ id: id, message: msg }, data));
+      });
+    }
 
     /**
      * @param {{data:{name:String},_delay:String,created_at:String,id:String}} job
@@ -361,36 +253,17 @@ var Logger = function () {
 
   }, {
     key: 'logQueued',
-    value: function () {
-      var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(_ref10) {
-        var data = _ref10.data;
-        var id = _ref10.id;
-        var createdAt = _ref10.created_at;
-        var delay = _ref10._delay;
-        var message;
-        return _regenerator2.default.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                message = 'Queued ' + data.name + ' to run in ' + runsIn(createdAt, delay);
+    value: function logQueued(_ref5) {
+      var data = _ref5.data;
+      var id = _ref5.id;
+      var createdAt = _ref5.created_at;
+      var delay = _ref5._delay;
 
-                this.winston.info(message, (0, _assign2.default)({ id: id }, data));
-
-              case 2:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function logQueued(_x9) {
-        return _ref9.apply(this, arguments);
-      }
-
-      return logQueued;
-    }()
+      var message = 'Queued ' + data.name + ' to run in ' + runsIn(createdAt, delay);
+      this.winston.info(message, Object.assign({ id: id }, data));
+    }
   }]);
+
   return Logger;
 }();
 

@@ -2,8 +2,8 @@ import kue from 'kue'
 import later from 'later'
 import assert from 'assert'
 import zmq from 'zmq-prebuilt'
-import { promisify } from 'bluebird'
-import { merge, omit } from 'lodash'
+import Promise, { all, promisify } from 'bluebird'
+import { omit, merge } from 'lodash'
 import Logger from './logger'
 import Mailer from './mailer'
 import { parseBackoff } from './util'
@@ -56,7 +56,7 @@ export default class Dispo {
    * @memberOf Dispo
    * @return {Promise<void>}
    */
-  async init () {
+  init () {
     this._logger = new Logger(this.config.options.logging)
     this._logger.init()
 
@@ -68,9 +68,9 @@ export default class Dispo {
     this._initSocket()
     this._initQueue(this.config.options.queue)
 
-    for (let job of this.config.jobs) {
-      await this.defineJob(job)
-    }
+    return all(this.config.jobs.map((job) => {
+      return this.defineJob(job)
+    }))
   }
 
   /**
@@ -87,20 +87,24 @@ export default class Dispo {
    * @param {DefineJobOptions} options - Job options
    * @return {Promise<void>}
    */
-  async defineJob ({ attempts, cron, notifyOnError, fn, name, backoff }) {
-    assert(name, 'Job must have a name')
+  defineJob ({ attempts, cron, notifyOnError, fn, name, backoff }) {
+    return new Promise((resolve, reject) => {
+      assert(name, 'Job must have a name')
 
-    const options = { attempts, backoff }
-    this._queue.process(name, (job, done) => fn(job).then(done, done))
+      const options = { attempts, backoff }
+      this._queue.process(name, (job, done) => fn(job).then(done, done))
 
-    if (notifyOnError) {
-      options.notifyOnError = notifyOnError
-    }
+      if (notifyOnError) {
+        options.notifyOnError = notifyOnError
+      }
 
-    if (cron) {
-      options.cron = cron
-      await this._queueJob(name, options)
-    }
+      if (cron) {
+        options.cron = cron
+        this._queueJob(name, options).then(resolve, reject)
+      } else {
+        resolve()
+      }
+    })
   }
 
   /**
@@ -117,12 +121,13 @@ export default class Dispo {
     this._queue.watchStuckJobs(5e3)
 
     if (NODE_ENV !== 'test') {
-      this._queue.on('job start', async (id) => await this._handleStart(id))
-      this._queue.on('job failed attempt', async (id, msg) => await this._handleFailedAttempt(id, msg))
-      this._queue.on('job failed', async (id, msg) => await this._handleFailed(id, msg))
+      this._queue.on('job start', (id) => this._handleStart(id))
+      this._queue.on('job failed attempt', (id, msg) => this._handleFailedAttempt(id, msg))
+      this._queue.on('job failed', (id, msg) => this._handleFailed(id, msg))
+      this._queue.on('job complete', (id) => this._handleLogComplete(id))
     }
 
-    this._queue.on('job complete', async (id) => await this._handleComplete(id))
+    this._queue.on('job complete', (id) => this._handleComplete(id))
   }
 
   /**
@@ -131,8 +136,8 @@ export default class Dispo {
    * @memberOf Dispo
    * @param {Number} id - Job id
    */
-  async _handleStart (id) {
-    await this._logger.logStart(id)
+  _handleStart (id) {
+    return this._logger.logStart(id)
   }
 
   /**
@@ -142,8 +147,8 @@ export default class Dispo {
    * @param {Number} id - Job id
    * @param {String} msg - Error message
    */
-  async _handleFailedAttempt (id, msg) {
-    await this._logger.logFailedAttempt(id, msg)
+  _handleFailedAttempt (id, msg) {
+    return this._logger.logFailedAttempt(id, msg)
   }
 
   /**
@@ -153,29 +158,38 @@ export default class Dispo {
    * @param {Number} id - Job id
    * @param {String} msg - Error message
    */
-  async _handleFailed (id, msg) {
-    await this._logger.logFailure(id, msg)
-    const job = await getJob(id)
-    if (this._mailer) {
-      await this._mailer.sendMail(id, job.error())
-    }
+  _handleFailed (id, msg) {
+    return this._logger.logFailure(id, msg)
+      .then(() => getJob(id))
+      .then((job) => {
+        if (this._mailer) {
+          return this._mailer.sendMail(id, job.error())
+        }
+      })
   }
 
   /**
-   * Logs completed jobs and re-queues them when defined as a cron
+   * Logs completed jobs
    *
    * @memberOf Dispo
    * @param {Number} id - Job id
    */
-  async _handleComplete (id) {
-    if (NODE_ENV !== 'test') {
-      await this._logger.logComplete(id)
-    }
+  _handleLogComplete (id) {
+    return this.logger.logComplete(id)
+  }
 
-    const job = await getJob(id)
-    if (job.data.cron) {
-      await this._queueJob(job.data.name, job.data)
-    }
+  /**
+   * Re-queues completed cron jobs
+   *
+   * @memberOf Dispo
+   * @param {Number} id - Job id
+   */
+  _handleComplete (id) {
+    return getJob(id).then((job) => {
+      if (job.data.cron) {
+        return this._queueJob(job.data.name, job.data)
+      }
+    })
   }
 
   /**
@@ -190,14 +204,13 @@ export default class Dispo {
   _initSocket (port = this.config.options.port) {
     const responder = zmq.socket('rep')
 
-    responder.on('message', async (message) => {
+    responder.on('message', (message) => {
       const payload = JSON.parse(message.toString())
       const job = this.config.jobs.filter((job) => job.name === payload.name).shift()
 
       if (job) {
         const data = omit(Object.assign(payload, job), 'fn', 'name')
-        await this._queueJob(job.name, data)
-        responder.send('ok')
+        this._queueJob(job.name, data).then(() => responder.send('ok'))
       }
     })
 
@@ -217,10 +230,11 @@ export default class Dispo {
    * @param {String} name - The jobs name
    * @return {Promise<Boolean>}
    */
-  async _isCronScheduled (name) {
-    const jobsByType = await getJobsByType(name, 'delayed', 0, 10000, 'desc')
-    const cronjobsByType = jobsByType.filter((job) => !!job.data.cron)
-    return cronjobsByType.length > 0
+  _isCronScheduled (name) {
+    return getJobsByType(name, 'delayed', 0, 10000, 'desc').then((jobsByType) => {
+      const cronjobsByType = jobsByType.filter((job) => !!job.data.cron)
+      return cronjobsByType.length > 0
+    })
   }
 
   /**
@@ -238,30 +252,30 @@ export default class Dispo {
    * @param {QueueJobOptions} options - Job options
    * @return {Promise<void>}
    */
-  async _queueJob (name, options) {
+  _queueJob (name, options) {
     const { attempts, cron, delay, backoff } = options
     assert(!!cron || !!delay, 'To queue a job, either `cron` or `delay` needs to be defined')
 
-    const isScheduled = await this._isCronScheduled(name)
+    this._isCronScheduled(name).then((isScheduled) => {
+      if (!cron || !isScheduled) {
+        const job = this._queue.create(name, Object.assign(options, { name }))
+          .delay(delay || this._calculateDelay(cron))
+          .attempts(attempts)
 
-    if (!cron || !isScheduled) {
-      const job = this._queue.create(name, Object.assign(options, { name }))
-        .delay(delay || this._calculateDelay(cron))
-        .attempts(attempts)
-
-      if (backoff) {
-        console.log(name, backoff)
-        job.backoff(parseBackoff(backoff))
-      }
-
-      job.save((err) => {
-        if (err) {
-          throw new Error(`Job save: ${err.message}`)
-        } else if (NODE_ENV !== 'test') {
-          this._logger.logQueued(job)
+        if (backoff) {
+          console.log(name, backoff)
+          job.backoff(parseBackoff(backoff))
         }
-      })
-    }
+
+        job.save((err) => {
+          if (err) {
+            throw new Error(`Job save: ${err.message}`)
+          } else if (NODE_ENV !== 'test') {
+            this._logger.logQueued(job)
+          }
+        })
+      }
+    })
   }
 
   /**

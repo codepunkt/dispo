@@ -38,15 +38,15 @@ export default class Mailer {
     this._mailer = nodemailer.createTransport(this.config.transport)
   }
 
-  async sendMail (job, message) {
-    const { data: { notifyOnError, name }, id } = await getJob(job)
+  sendMail (job, message) {
+    return getJob(job).then(({ data: { notifyOnError, name }, id }) => {
+      if (!notifyOnError) return
 
-    if (!notifyOnError) return
-
-    this._mailer.sendMail(Object.assign({}, this.config.mail, {
-      to: notifyOnError,
-      subject: `Job "${name}" (id ${id}) failed`,
-      text: `Job "${name}" (id ${id}) failed\n\n${message}`
-    }))
+      return this._mailer.sendMail(Object.assign({}, this.config.mail, {
+        to: notifyOnError,
+        subject: `Job "${name}" (id ${id}) failed`,
+        text: `Job "${name}" (id ${id}) failed\n\n${message}`
+      }))
+    })
   }
 }

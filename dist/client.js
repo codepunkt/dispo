@@ -1,13 +1,12 @@
 'use strict';
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
+var _zmqPrebuilt = require('zmq-prebuilt');
 
-var _stringify2 = _interopRequireDefault(_stringify);
+var _zmqPrebuilt2 = _interopRequireDefault(_zmqPrebuilt);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var zmq = require('zmq-prebuilt');
-var requester = zmq.socket('req');
+var requester = _zmqPrebuilt2.default.socket('req');
 
 var data = {
   name: 'randomSingle',
@@ -23,5 +22,5 @@ requester.on('message', onMessage);
 requester.connect('tcp://localhost:5555');
 
 setInterval(function () {
-  requester.send((0, _stringify2.default)(data));
+  requester.send(JSON.stringify(data));
 }, 1e3);
