@@ -18,7 +18,7 @@
     "nodemailer-sendmail-transport": "^1.0.0",
     "pretty-ms": "^2.1.0",
     "winston": "^2.2.0",
-    "zmq-prebuilt": "^2.0.0"
+    "zeromq": "^3.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",

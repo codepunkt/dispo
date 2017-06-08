@@ -363,10 +363,10 @@ var Logger = function () {
     key: 'logQueued',
     value: function () {
       var _ref9 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(_ref10) {
-        var data = _ref10.data;
-        var id = _ref10.id;
-        var createdAt = _ref10.created_at;
-        var delay = _ref10._delay;
+        var data = _ref10.data,
+            id = _ref10.id,
+            createdAt = _ref10.created_at,
+            delay = _ref10._delay;
         var message;
         return _regenerator2.default.wrap(function _callee5$(_context5) {
           while (1) {

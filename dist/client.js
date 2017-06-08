@@ -6,7 +6,7 @@ var _stringify2 = _interopRequireDefault(_stringify);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var zmq = require('zmq-prebuilt');
+var zmq = require('zeromq');
 var requester = zmq.socket('req');
 
 var data = {
