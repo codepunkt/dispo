@@ -74,14 +74,14 @@ To do so, simply enable the `mailer` in the configuration file and add email add
   "options": {
     "mailer": true
   },
-  "jobs": [
+  "jobs": {
     "mightFail": {
       "file": "jobs/mightFail.js",
       "cron": "*/1 * * * *",
       "attempts": 3,
       "notifyOnError": "john.doe@example.com"
     }
-  ]
+  }
 }
 ```
 
@@ -100,14 +100,14 @@ module.exports = {
       }
     }
   },
-  jobs: [
+  jobs: {
     mightFail: {
       file: 'jobs/mightFail.js',
       cron: '*/1 * * * *',
       attempts: 3,
       notifyOnError: 'john.doe@example.com'
     }
-  ]
+  }
 }
 ```
 
